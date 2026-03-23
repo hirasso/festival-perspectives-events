@@ -212,6 +212,10 @@ final class Recurrences
         $rawFurtherDates = $_POST['acf'][$this->fieldKey]
             ?? get_field($this->fieldKey, $postID, false);
 
+        if (empty($rawFurtherDates)) {
+            return [];
+        }
+
         /**
          * Create a recurrence for each furtherDates entry
          */
