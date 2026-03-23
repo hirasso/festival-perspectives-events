@@ -82,7 +82,7 @@ final class Core
      */
     private function setupArchiver(): void
     {
-        $hook = 'acfe_run_auto_archiver';
+        $hook = 'fp_events_run_archiver';
 
         add_action($hook, function () {
             $archiver = new Archiver($this);
@@ -90,7 +90,7 @@ final class Core
         });
 
         if ($this->utils->isWpCli()) {
-            WP_CLI::add_command("events archiver:run", fn() => do_action($hook));
+            WP_CLI::add_command("events archiver run", fn() => do_action($hook));
         }
 
         if (!wp_next_scheduled($hook)) {
