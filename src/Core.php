@@ -103,7 +103,7 @@ final class Core
      */
     public function isEvent(mixed $post)
     {
-        if (!($postID = $this->getPostID($post))) {
+        if (!$postID = $this->getPostID($post)) {
             return false;
         }
         return in_array(get_post_type($postID), [PostTypes::EVENT, PostTypes::RECURRENCE], true);
@@ -993,7 +993,7 @@ final class Core
      */
     public function isEventInThePast(int|WP_Post $post): bool
     {
-        if (get_post_type($post) !== PostTypes::EVENT) {
+        if (!$this->isEvent($post)) {
             return false;
         }
 

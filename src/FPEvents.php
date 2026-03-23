@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents;
 
+use DateTimeImmutable;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use WP_Post;
@@ -49,6 +50,20 @@ final class FPEvents
         $time = date_i18n(get_option('time_format'), strtotime($rawDate));
 
         return collect([$date, $time])->filter()->join($separator);
+    }
+
+    /**
+     * Get the year of an event
+     */
+    public function getEventYear(int|WP_Post $post): ?string
+    {
+        if (!$this->core->isEvent($post)) {
+            return null;
+        }
+
+        $rawDate = get_field(EventFields::DATE_AND_TIME, $post, false);
+
+        return (new DateTimeImmutable($rawDate))->format('Y');
     }
 
     /**
