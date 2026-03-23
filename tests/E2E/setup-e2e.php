@@ -31,5 +31,9 @@ function getCurrentEnv(): ?string
 }
 
 add_action('after_setup_theme', function () {
+    $whoops = new \Whoops\Run();
+    $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
+    $whoops->register();
+
     new Setup();
 });

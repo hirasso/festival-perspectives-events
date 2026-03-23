@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "941b5cafc5b77fed1fe825e85352615b",
+    "content-hash": "4055e8ddf5df414e92074140606efc49",
     "packages": [
         {
             "name": "hirasso/attr",

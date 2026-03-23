@@ -72,6 +72,7 @@
     }
   },
   "require-dev": {
+    "filp/whoops": "^2.18",
     "laravel/pint": "^1.27",
     "pestphp/pest": "^1.23",
     "phpstan/extension-installer": "^1.4",
