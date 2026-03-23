@@ -61,16 +61,6 @@
     },
     "wordpress-install-dir": "vendor/.wp/core"
   },
-  "repositories": {
-    "wp-composer": {
-      "type": "composer",
-      "url": "https://repo.wp-composer.com",
-      "only": [
-        "wp-plugin/*",
-        "wp-theme/*"
-      ]
-    }
-  },
   "require-dev": {
     "filp/whoops": "^2.18",
     "laravel/pint": "^1.27",
@@ -88,5 +78,12 @@
     "wp-plugin/polylang": "^3.7",
     "wp-theme/twentytwentyfive": "^1.4",
     "yoast/wp-test-utils": "^1.2"
-  }
+  },
+  "repositories": [
+    {
+      "name": "wp-packages",
+      "type": "composer",
+      "url": "https://repo.wp-packages.org"
+    }
+  ]
 }
