@@ -11,7 +11,9 @@
   "require": {
     "php": ">=8.2",
     "hirasso/attr": "^4.4",
-    "illuminate/collections": "^11 || ^12"
+    "illuminate/collections": "^11 || ^12",
+    "monolog/monolog": "^3.10",
+    "oscarotero/env": "^2.1"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,

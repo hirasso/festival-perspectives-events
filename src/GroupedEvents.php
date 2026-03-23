@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Hirasso\WP\FPEvents;
 
 final class GroupedEvents

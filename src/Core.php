@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use RuntimeException;
+use WP_CLI;
 use WP_Post;
 use WP_Query;
 use WP_Term;
@@ -47,10 +48,14 @@ final class Core
         add_filter('relevanssi_hits_filter', [$this, 'relevanssi_hits_filter'], 10, 2);
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
         add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
+        add_action('init', $this->setupArchiver(...));
 
         return $this;
     }
 
+    /**
+     * Runs on init
+     */
     public function init_hook()
     {
         $this->addPostType(name: PostTypes::EVENT, slug: 'event', filter: true, args: [
@@ -70,6 +75,31 @@ final class Core
         ]);
 
         $this->customizeEditColumns();
+    }
+
+    /**
+     * Setup the archiver
+     */
+    private function setupArchiver(): void
+    {
+        $hook = 'acfe_run_auto_archiver';
+
+        add_action($hook, function () {
+            $archiver = new Archiver($this);
+            $archiver->run();
+        });
+
+        if ($this->utils->isWpCli()) {
+            WP_CLI::add_command("events archiver:run", fn() => do_action($hook));
+        }
+
+        if (!wp_next_scheduled($hook)) {
+            wp_schedule_event(
+                timestamp: current_time('timestamp'),
+                recurrence: 'daily',
+                hook: $hook,
+            );
+        }
     }
 
     /**
@@ -331,10 +361,14 @@ final class Core
     }
 
     /**
-     * Restrict events to a certain year
+     * Restrict a query to a certain year
      */
     private function restrictToYear(WP_Query $query, int $year): void
     {
+        if ($query->get('suppress_filters')) {
+            return;
+        }
+
         $query->set('year', '');
         $query->set('acfe:year', $year);
         $query->query_vars = array_replace_recursive($query->query_vars, [

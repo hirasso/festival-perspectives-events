@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Hirasso\WP\FPEvents\Tests\Integration;
 
 use Hirasso\WP\FPEvents\Core;
@@ -9,7 +11,7 @@ use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
 
-class BasicTest extends TestCase
+class RecurrencesTest extends TestCase
 {
     public function setUp(): void
     {
