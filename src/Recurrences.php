@@ -104,37 +104,32 @@ final class Recurrences
 
         $postLanguage = pll_get_post_language($postID);
 
-        /** @var array<int, array<string, int>> $linked */
-        $linked = collect($this->getRecurrences($postID))
-            ->map(fn($id) => [$postLanguage => $id])
-            ->all();
+        /** @var array<string, int> $postTranslations */
+        $postTranslations = pll_get_post_translations($postID);
 
-        /** @var array<string, int> $translations */
-        $translations = pll_get_post_translations($postID);
-
-        if (empty($translations)) {
+        if (empty($postTranslations)) {
             return;
         }
 
-        foreach ($translations as $language => $id) {
-            $recurrences = $this->createRecurrences($id);
+        /**
+         * Seed groups with the already-created recurrences for the original post,
+         * indexed by recurrence position: [ index => [ lang => recurrenceID ] ]
+         *
+         * @var array<int, array<string, int>> $recurrenceGroups
+         */
+        $recurrenceGroups = collect($this->getRecurrences($postID))
+            ->map(fn($id) => [$postLanguage => $id])
+            ->all();
 
-            foreach ($recurrences as $index => $recurrenceID) {
-                $linked[$index][$language] = $recurrenceID;
+        foreach ($postTranslations as $language => $id) {
+            foreach ($this->createRecurrences($id) as $index => $recurrenceID) {
+                $recurrenceGroups[$index][$language] = $recurrenceID;
             }
         }
 
-        /**
-         * We have an array with this shape now:
-         * [
-         *   ['de' => 123, 'fr' => 456],
-         *   ['de' => 3298, 'fr' => 1234],
-         *   ['de' => 4125, 'fr' => 4523],
-         *   ....
-         * ]
-         */
-        foreach ($linked as $translations) {
-            pll_save_post_translations($translations);
+        // Link each set of per-language recurrences as Polylang translations of each other
+        foreach ($recurrenceGroups as $group) {
+            pll_save_post_translations($group);
         }
     }
 
