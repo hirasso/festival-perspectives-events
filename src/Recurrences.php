@@ -33,7 +33,7 @@ final class Recurrences
         $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
         if ($core->utils->isWpCli()) {
-            WP_CLI::add_command('events recurrences:create', $this->createRecurrencesCommand(...));
+            WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
         }
     }
 
@@ -341,7 +341,7 @@ final class Recurrences
      *
      * ## EXAMPLES
      *
-     *     wp events recurrences:create 423 857 920
+     *     wp events recurrences create 423 857 920
      *
      * @param list<string> $args
      *
