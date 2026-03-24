@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
+use InvalidArgumentException;
 use RuntimeException;
 use WP_CLI;
 use WP_Post;
@@ -89,14 +90,14 @@ final class Core
         add_action($hook, $this->runArchiver(...));
 
         if ($this->utils->isWpCli()) {
-            WP_CLI::add_command("events archiver run", fn() => do_action($hook), [
+            WP_CLI::add_command("fp-events archiver run", fn() => do_action($hook), [
                 'shortdesc' => 'Run the archiver.',
             ]);
         }
 
         if (!wp_next_scheduled($hook)) {
             wp_schedule_event(
-                timestamp: current_time('timestamp'),
+                timestamp: time(),
                 recurrence: 'daily',
                 hook: $hook,
             );
@@ -1061,5 +1062,34 @@ final class Core
     public function isInThePast(string $date): bool
     {
         return $date < current_time(self::MYSQL_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Get all expired events.
+     * Uses a raw SQL query to make sure all candidates are found.
+     *
+     * @return list<int>
+     */
+    public function getExpiredEvents(string $postType = PostTypes::EVENT): array
+    {
+        if (!in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true)) {
+            throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
+        }
+
+        $wpdb = $this->utils->wpdb();
+
+        $results = $wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+             WHERE p.post_type = %s
+               AND pm.meta_key = %s
+               AND CAST(pm.meta_value AS DATE) < %s",
+            $postType,
+            EventFields::DATE_AND_TIME,
+            current_time('Y') . '-01-01',
+        ));
+
+        return collect($results)->map(absint(...))->all();
     }
 }

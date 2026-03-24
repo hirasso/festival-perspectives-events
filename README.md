@@ -17,12 +17,15 @@
 ## Screenshots
 
 ### Frontend:
+
 ![Frontend View](https://github.com/user-attachments/assets/fabb405e-fba0-4f4c-8c88-2093fbad2ba3)
 
 ### Admin View: Event
+
 ![Admin View: Event](https://github.com/user-attachments/assets/6f0b3772-ea5c-4868-a54e-5229ec6704be)
 
 ### Admin View: Location
+
 ![Admin View: Location](https://github.com/user-attachments/assets/d1b9cfa3-8fc4-4964-9286-58985555f618)
 
 ## Installation
@@ -45,4 +48,32 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 fp_events();
 /** the same function is also the access point for the API, e.g.: */
 fp_events()->getEventDateAndTime($post_id);
+```
+
+## Notes
+
+Notes to future self – NOT a full documentation.
+
+### Scheduled Action 'fp_events_run_archiver'
+
+`do_action('fp_events_run_archiver')` is automatically scheduled to run once a day.
+By default, expired recurrences are deleted during this action.
+You can hook into the action to perform your custom archiving jobs:
+
+```php
+add_action('fp_events_run_archiver', function() {
+  foreach (fp_events()->core->getExpiredEvents() as $postID) {
+      /** for example: remove filters from expired events */
+      removeEventFilters($postID);
+  }
+});
+```
+
+To re-schedule the action to run _now_, you can use `wp cron event unschedule fp_events_run_archiver` or a plugin like [WP Crontrol](https://wordpress.org/plugins/wp-crontrol/).
+
+Alternatively, you can invoke the action via WP CLI:
+
+```bash
+# triggers the action 'fp_events_run_archiver'
+wp fp-events archiver run
 ```
