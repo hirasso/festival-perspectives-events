@@ -14,9 +14,9 @@ require_once \getenv('WP_PHPUNIT__DIR') . '/includes/functions.php';
 
 /** Manually load plugin files required for tests. */
 \tests_add_filter('muplugins_loaded', function () use ($pluginsDir) {
-    define('PLL_ADMIN', true);
+    // define('PLL_ADMIN', true);
     require_once("$pluginsDir/advanced-custom-fields-pro/acf.php");
-    require_once("$pluginsDir/polylang-pro/polylang.php");
+    require_once("$pluginsDir/polylang/polylang.php");
 });
 
 /**

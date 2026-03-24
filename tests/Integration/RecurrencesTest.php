@@ -15,7 +15,7 @@ class RecurrencesTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->setupPolylangLanguages();
+        // $this->setupPolylangLanguages();
         fp_events();
     }
 
@@ -44,6 +44,20 @@ class RecurrencesTest extends TestCase
             'rtl'        => false,
             'term_group' => 1,
         ]);
+
+        $options = get_option('polylang') ?: [];
+
+        $updatedOptions = collect($options)
+            ->replaceRecursive([
+                'post_types' => [
+                    PostTypes::EVENT,
+                    PostTypes::RECURRENCE,
+                    PostTypes::LOCATION,
+                ],
+            ])
+            ->all();
+
+        update_option('polylang', $updatedOptions);
     }
 
     public function test_has_polylang_languages_active()

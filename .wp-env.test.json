@@ -7,7 +7,7 @@
   "themes": ["./vendor/.wp/themes/twentytwentyfive"],
   "plugins": [
     "./vendor/.wp/plugins/advanced-custom-fields-pro",
-    "./vendor/.wp/plugins/polylang-pro",
+    "./vendor/.wp/plugins/polylang",
     "./tests/E2E"
   ],
   "mappings": {
