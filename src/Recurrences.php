@@ -51,6 +51,8 @@ final class Recurrences
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
 
+        add_action('fp_events_create_recurrences', $this->scheduledCreateRecurrences(...), 10);
+
         return $this;
     }
 
@@ -80,6 +82,20 @@ final class Recurrences
      * Hook into save_post
      */
     public function save_post(int $postID): void
+    {
+        if (!$this->core->isOriginalEvent($postID)) {
+            return;
+        }
+
+        if (!wp_next_scheduled('fp_events_create_recurrences', [$postID])) {
+            wp_schedule_single_event(time(), 'fp_events_create_recurrences', [$postID]);
+        }
+    }
+
+    /**
+     * Create recurrences on a scheduled event
+     */
+    private function scheduledCreateRecurrences(int $postID): void
     {
         if (!$this->core->isOriginalEvent($postID)) {
             return;
@@ -197,15 +213,7 @@ final class Recurrences
             return [];
         }
 
-        /**
-         * FIRST check for an existing acf $_POST data, to make sure
-         * the right most recent data lands in the clones.
-         *
-         * Falls back to the raw field value of the post, if $_POST data
-         * is not available (e.g. during any edit actions from the edit.php screen)
-         */
-        $rawFurtherDates = $_POST['acf'][$this->fieldKey]
-            ?? get_field($this->fieldKey, $postID, false);
+        $rawFurtherDates = get_field($this->fieldKey, $postID, false);
 
         if (empty($rawFurtherDates)) {
             return [];
