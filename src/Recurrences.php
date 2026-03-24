@@ -63,8 +63,8 @@ final class Recurrences
         }
 
         register_post_type(PostTypes::RECURRENCE, [
-            'public' => true,
-            'show_ui' => true,
+            'public' => false,
+            'show_ui' => current_user_can('administrator'),
             'publicly_queryable' => false,
             'has_archive' => false,
             'show_in_menu' => 'edit.php?post_type=' . PostTypes::EVENT,
