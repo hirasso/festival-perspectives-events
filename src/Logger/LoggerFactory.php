@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\Logger;
 
-use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
-use Monolog\Level;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 use function Env\env;
 
@@ -21,9 +19,9 @@ class LoggerFactory
         bool $isWpCli,
         bool $sendEmails = true,
         bool $throwOnCritical = true,
-    ): Logger {
+    ): LoggerInterface {
 
-        $logger = new Logger($name);
+        $logger = new \Monolog\Logger($name);
         $logger->setTimezone(wp_timezone());
 
         /** Needs to be pushed first so that it gets called last */
@@ -35,7 +33,7 @@ class LoggerFactory
          * Handle PHP errors with Monolog
          * @see https://stackoverflow.com/a/36744961/586823
          */
-        $error_handler = new ErrorHandler($logger);
+        $error_handler = new \Monolog\ErrorHandler($logger);
         $error_handler->registerErrorHandler([], false);
         $error_handler->registerExceptionHandler();
         $error_handler->registerFatalHandler();
@@ -51,7 +49,7 @@ class LoggerFactory
 
         /** Add WP_CLI messages if in WP CLI */
         if ($isWpCli) {
-            $wpCLIHandler = new WPCLIHandler(Level::Debug);
+            $wpCLIHandler = new WPCLIHandler(\Monolog\Level::Debug);
             $wpCLIHandler->setFormatter(new LineFormatter("%message% %context%"));
             $logger->pushHandler($wpCLIHandler);
         }
@@ -65,7 +63,7 @@ class LoggerFactory
      */
     private static function getMailTo(): array
     {
-        $to = trim(env('LOGGER_MAIL_TO') ?: '');
+        $to = trim(env('FP_EVENTS_LOGGER_MAIL_TO') ?: '');
 
         return $to !== ''
             ? array_map(trim(...), explode(',', $to))
@@ -77,9 +75,7 @@ class LoggerFactory
      */
     private static function getMailFrom(): string
     {
-        $host = wp_parse_url(network_home_url(), PHP_URL_HOST);
-        $default = 'logger@' . preg_replace('#^www\.#', '', $host);
-
-        return trim(env('LOGGER_MAIL_FROM') ?: $default);
+        $host = preg_replace('#^www\.#', '', wp_parse_url(network_home_url(), PHP_URL_HOST));
+        return trim(env('FP_EVENTS_LOGGER_MAIL_FROM') ?: "logger@{$host}");
     }
 }

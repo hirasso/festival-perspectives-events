@@ -6,4 +6,4 @@ parameters:
     - vendor/.wp
     - vendor/wp-cli/wp-cli
   ignoreErrors:
-    - identifier: property.onlyWritten
+    # - identifier: property.onlyWritten

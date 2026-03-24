@@ -6,22 +6,19 @@ namespace Hirasso\WP\FPEvents;
 
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\Logger\LoggerFactory;
+use Psr\Log\LoggerInterface;
 
 /**
- * Cleans up data that is not required anymore (e.g. recurrences)
+ * Deletes data that is not required anymore
+ *
+ * – deletes expired recurrences
  */
 final class Archiver
 {
-    private \Monolog\Logger $logger;
-
-    public function __construct(private Core $core)
-    {
-        $this->logger = LoggerFactory::create(
-            __CLASS__,
-            isWpCli: $core->utils->isWpCli(),
-        );
-    }
+    public function __construct(
+        private Core $core,
+        private LoggerInterface $logger,
+    ) {}
 
     /**
      * Log a critical event (also exits)
@@ -42,41 +39,40 @@ final class Archiver
 
     public function run()
     {
-
         try {
             $this->logger->info("Deleting expired event recurrences...");
-            $deletedCount = $this->deleteExpiredRecurrences();
+            $deletedCount = $this->deleteAllExpiredRecurrences();
             $this->success(sprintf('Deleted %d expired event recurrences', $deletedCount));
         } catch (Exception $e) {
             $this->critical($e->getMessage());
         }
-
     }
 
     /**
      * Delete expired recurrences. Return the count.
+     * Uses a raw SQL query to make sure all candidates are found.
      */
-    private function deleteExpiredRecurrences(): int
+    private function deleteAllExpiredRecurrences(): int
     {
-        $currentYear = current_time('Y');
+        $wpdb = $this->core->utils->wpdb();
 
-        $expiredRecurrences = get_posts([
-            'lang' => '',
-            'suppress_filters' => true,
-            'post_type' => PostTypes::RECURRENCE,
-            'post_status' => 'any',
-            'posts_per_page' => -1,
-            'meta_query' => [
-                [
-                    'key'     => EventFields::DATE_AND_TIME,
-                    'value'   => "{$currentYear}-01-01",
-                    'compare' => '<',
-                    'type'    => 'DATE',
-                ],
-            ],
-            'fields' => 'ids',
-        ]);
+        /** @var list<int> $expiredIds */
+        $expiredIds = collect($wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+             WHERE p.post_type = %s
+               AND pm.meta_key = %s
+               AND CAST(pm.meta_value AS DATE) < %s",
+            PostTypes::RECURRENCE,
+            EventFields::DATE_AND_TIME,
+            current_time('Y') . '-01-01',
+        )))->map(absint(...))->all();
 
-        return count($expiredRecurrences);
+        foreach ($expiredIds as $id) {
+            wp_delete_post($id, true);
+        }
+
+        return count($expiredIds);
     }
 }

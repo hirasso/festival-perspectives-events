@@ -7,6 +7,7 @@ namespace Hirasso\WP\FPEvents;
 use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use Hirasso\WP\FPEvents\Logger\LoggerFactory;
 use RuntimeException;
 use WP_CLI;
 use WP_Post;
@@ -48,7 +49,8 @@ final class Core
         add_filter('relevanssi_hits_filter', [$this, 'relevanssi_hits_filter'], 10, 2);
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
         add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
-        add_action('init', $this->setupArchiver(...));
+
+        $this->setupArchiver();
 
         return $this;
     }
@@ -84,13 +86,12 @@ final class Core
     {
         $hook = 'fp_events_run_archiver';
 
-        add_action($hook, function () {
-            $archiver = new Archiver($this);
-            $archiver->run();
-        });
+        add_action($hook, $this->runArchiver(...));
 
         if ($this->utils->isWpCli()) {
-            WP_CLI::add_command("events archiver run", fn() => do_action($hook));
+            WP_CLI::add_command("events archiver run", fn() => do_action($hook), [
+                'shortdesc' => 'Run the archiver.',
+            ]);
         }
 
         if (!wp_next_scheduled($hook)) {
@@ -100,6 +101,20 @@ final class Core
                 hook: $hook,
             );
         }
+    }
+
+    /**
+     * Run the archiver
+     */
+    private function runArchiver(): void
+    {
+        $logger = LoggerFactory::create(
+            Archiver::class,
+            isWpCli: $this->utils->isWpCli(),
+        );
+
+        $archiver = new Archiver($this, $logger);
+        $archiver->run();
     }
 
     /**
