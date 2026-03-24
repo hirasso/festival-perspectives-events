@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4055e8ddf5df414e92074140606efc49",
+    "content-hash": "cc8e6182dfedcdec5dfe3fc5f4ace079",
     "packages": [
         {
             "name": "hirasso/attr",
@@ -4732,6 +4732,43 @@
             "time": "2025-11-01T21:52:38+00:00"
         },
         {
+            "name": "wordpress-premium/polylang-pro",
+            "version": "v3.7.6",
+            "source": {
+                "type": "git",
+                "url": "https://gitlab.com/wordpress-premium/polylang-pro.git",
+                "reference": "851df56e647a4c19450d69ddff9c77aa67963a0d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/wordpress-premium%2Fpolylang-pro/repository/archive.zip?sha=851df56e647a4c19450d69ddff9c77aa67963a0d",
+                "reference": "851df56e647a4c19450d69ddff9c77aa67963a0d",
+                "shasum": ""
+            },
+            "type": "wordpress-plugin",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "description": "With over 500,000 installs, Polylang is the most popular multilingual plugin available on the WordPress directory. You write your posts, pages and create categories and post tags as usual, and assign a language to each of them.",
+            "homepage": "https://polylang.pro",
+            "keywords": [
+                "bilingual",
+                "international",
+                "language",
+                "localization",
+                "multilanguage",
+                "multilingual",
+                "translate",
+                "translation"
+            ],
+            "support": {
+                "issues": "https://gitlab.com/wordpress-premium/polylang-pro/-/issues",
+                "source": "https://gitlab.com/wordpress-premium/polylang-pro/-/tree/v3.7.6"
+            },
+            "time": "2026-03-21T02:50:47+00:00"
+        },
+        {
             "name": "wp-cli/mustache",
             "version": "v2.14.99",
             "source": {
@@ -5046,37 +5083,6 @@
             "time": "2025-12-08T10:40:00+00:00"
         },
         {
-            "name": "wp-plugin/polylang",
-            "version": "3.8.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/polylang/",
-                "reference": "tags/3.8.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/polylang.3.8.1.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0|~2.0"
-            },
-            "type": "wordpress-plugin",
-            "notification-url": "https://wp-packages.org/downloads",
-            "authors": [
-                {
-                    "name": "Chouby"
-                }
-            ],
-            "description": "Go multilingual in a simple and efficient way. Keep writing posts and taxonomy terms as usual while defining their languages all at once.",
-            "homepage": "https://polylang.pro",
-            "support": {
-                "changelog": "https://wordpress.org/plugins/polylang/#developers",
-                "issues": "https://wordpress.org/support/plugin/polylang",
-                "source": "https://plugins.svn.wordpress.org/polylang"
-            },
-            "time": "2026-03-19T10:55:00+00:00"
-        },
-        {
             "name": "wp-theme/twentytwentyfive",
             "version": "1.4",
             "source": {
@@ -5101,6 +5107,40 @@
                 "source": "https://themes.svn.wordpress.org/twentytwentyfive"
             },
             "time": "2025-12-03T00:00:00+00:00"
+        },
+        {
+            "name": "wpsyntex/polylang-stubs",
+            "version": "3.7.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/polylang/polylang-stubs.git",
+                "reference": "9cdf850319b71fbff44ac121d6f71ae41bc8d7d3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/polylang/polylang-stubs/zipball/9cdf850319b71fbff44ac121d6f71ae41bc8d7d3",
+                "reference": "9cdf850319b71fbff44ac121d6f71ae41bc8d7d3",
+                "shasum": ""
+            },
+            "require-dev": {
+                "php": "^7.3 || ^8.0",
+                "php-stubs/generator": "^0.8"
+            },
+            "suggest": {
+                "wpsyntex/polylang-phpstan": "Polylang extension for PHPStan"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "description": "Polylang and Polylang Pro function and class declaration stubs for static analysis.",
+            "homepage": "https://polylang.pro",
+            "support": {
+                "issues": "https://github.com/polylang/polylang-stubs/issues",
+                "source": "https://github.com/polylang/polylang-stubs/tree/3.7.3"
+            },
+            "time": "2025-07-17T11:36:51+00:00"
         },
         {
             "name": "yoast/phpunit-polyfills",

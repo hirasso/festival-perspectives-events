@@ -5,8 +5,8 @@
   "themes": ["./vendor/.wp/themes/twentytwentyfive"],
   "plugins": [
     "./vendor/.wp/plugins/advanced-custom-fields-pro",
-    "./vendor/.wp/plugins/classic-editor",
-    "./vendor/.wp/plugins/polylang"
+    "./vendor/.wp/plugins/polylang-pro",
+    "./vendor/.wp/plugins/classic-editor"
   ],
   "port": 2233,
   "mappings": {
