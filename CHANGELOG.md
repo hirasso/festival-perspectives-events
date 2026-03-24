@@ -1,5 +1,16 @@
 # Changelog: `hirasso/festival-perspectives-events`
 
+## 1.1.0
+
+### Minor Changes
+
+- bc86174: Add a scheduled job `fp_events_run_archiver` that deletes expired recurrences on a daily basis
+
+### Patch Changes
+
+- ea8a7fd: New wp-cli command: `wp events recurrences create <post-id>...`
+- da5c258: Add new API method `fp_events()->core->isEventInThePast()`
+
 ## 1.0.1
 
 ### Patch Changes
