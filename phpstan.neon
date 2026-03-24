@@ -5,3 +5,5 @@ parameters:
   scanDirectories:
     - vendor/.wp
     - vendor/wp-cli/wp-cli
+  ignoreErrors:
+    # - identifier: property.onlyWritten

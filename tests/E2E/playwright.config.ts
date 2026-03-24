@@ -14,19 +14,25 @@ const dd = function (...args: any[]) {
   process.exit(1);
 };
 
-function getStatus() {
+function getWPEnvUrl() {
   const output = execSync("pnpm run wp-env-test status --json", {
     encoding: "utf-8",
   });
+
   const json = output.split("\n").find((line) => line.trim().startsWith("{"));
-  return json ? JSON.parse(json) : undefined;
+
+  if (!json) {
+    throw new Error('`pnpm run wp-env-test status --json` did not produce valid json');
+  }
+
+  return JSON.parse(json).urls.development;
 }
 
 export const authFile = path.join(__dirname, "playwright/.auth/user.json");
 
 const isCI = Boolean(process.env.CI);
 
-export const baseURL = new URL(getStatus().urls.development);
+export const baseURL = new URL(getWPEnvUrl());
 
 /**
  * See https://playwright.dev/website/test-configuration.

@@ -7,7 +7,11 @@ namespace Hirasso\WP\FPEvents;
 use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use Hirasso\WP\FPEvents\FieldGroups\Fields;
+use Hirasso\WP\FPEvents\Logger\LoggerFactory;
+use InvalidArgumentException;
 use RuntimeException;
+use WP_CLI;
 use WP_Post;
 use WP_Query;
 use WP_Term;
@@ -48,9 +52,14 @@ final class Core
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
         add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
+        $this->setupArchiver();
+
         return $this;
     }
 
+    /**
+     * Runs on init
+     */
     public function init_hook()
     {
         $this->addPostType(name: PostTypes::EVENT, slug: 'event', filter: true, args: [
@@ -70,6 +79,44 @@ final class Core
         ]);
 
         $this->customizeEditColumns();
+    }
+
+    /**
+     * Setup the archiver
+     */
+    private function setupArchiver(): void
+    {
+        $hook = 'fp_events_run_archiver';
+
+        add_action($hook, $this->runArchiver(...));
+
+        if ($this->utils->isWpCli()) {
+            WP_CLI::add_command("fp-events archiver run", fn() => do_action($hook), [
+                'shortdesc' => 'Run the archiver.',
+            ]);
+        }
+
+        if (!wp_next_scheduled($hook)) {
+            wp_schedule_event(
+                timestamp: time(),
+                recurrence: 'daily',
+                hook: $hook,
+            );
+        }
+    }
+
+    /**
+     * Run the archiver
+     */
+    private function runArchiver(): void
+    {
+        $logger = LoggerFactory::create(
+            Archiver::class,
+            isWpCli: $this->utils->isWpCli(),
+        );
+
+        $archiver = new Archiver($this, $logger);
+        $archiver->run();
     }
 
     /**
@@ -148,9 +195,9 @@ final class Core
      * Get all dates from an Event. Excludes recurrences in the past via filter
      * @return EventDate[]
      */
-    public function getEventDates(int|WP_Post $_post): array
+    public function getEventDates(int|WP_Post $event): array
     {
-        if (!$event = $this->getEvent($_post)) {
+        if (!$event = $this->getEvent($event)) {
             return [];
         }
 
@@ -331,10 +378,14 @@ final class Core
     }
 
     /**
-     * Restrict events to a certain year
+     * Restrict a query to a certain year
      */
     private function restrictToYear(WP_Query $query, int $year): void
     {
+        if ($query->get('suppress_filters')) {
+            return;
+        }
+
         $query->set('year', '');
         $query->set('acfe:year', $year);
         $query->query_vars = array_replace_recursive($query->query_vars, [
@@ -1012,5 +1063,69 @@ final class Core
     public function isInThePast(string $date): bool
     {
         return $date < current_time(self::MYSQL_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Get all expired events.
+     * Uses a raw SQL query to make sure all candidates are found.
+     *
+     * @return list<int>
+     */
+    public function getExpiredEvents(string $postType = PostTypes::EVENT): array
+    {
+        if (!in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true)) {
+            throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
+        }
+
+        $wpdb = $this->utils->wpdb();
+
+        $results = $wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+             WHERE p.post_type = %s
+               AND pm.meta_key = %s
+               AND CAST(pm.meta_value AS DATE) < %s",
+            $postType,
+            EventFields::DATE_AND_TIME,
+            current_time('Y') . '-01-01',
+        ));
+
+        return collect($results)->map(absint(...))->all();
+    }
+
+    /**
+     * Set further dates for an event manually
+     *
+     * @param list<string> $dates
+     *
+     * @return list<string> the mysql-formatted dates
+     */
+    public function setFurtherDates(int|WP_Post $event, array $dates): array
+    {
+        if (!$event = $this->getEvent($event)) {
+            throw new Exception(sprintf('Please provide an event'));
+        }
+
+        $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+
+        $rows = collect($dates)
+            ->values()
+            ->map(fn($date) => \strtotime($date))
+            ->filter(fn($timestamp) => !!$timestamp)
+            ->sort()
+            ->map(fn($timestamp) => [$subFieldKey => \date(Core::MYSQL_DATE_TIME_FORMAT, $timestamp)])
+            ->all();
+
+        update_field(
+            Fields::key(EventFields::FURTHER_DATES),
+            $rows,
+            $event,
+        );
+
+        return collect($rows)
+            ->pluck($subFieldKey)
+            ->values()
+            ->all();
     }
 }

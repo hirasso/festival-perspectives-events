@@ -19,8 +19,6 @@ final class Recurrences
 {
     private string $fieldKey;
     private string $subFieldKey;
-    private string $postType;
-    private string $recurrencePostType;
 
     private static ?self $instance = null;
     public static function init(Core $core)
@@ -33,8 +31,6 @@ final class Recurrences
     {
         $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
         $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
-        $this->postType = PostTypes::EVENT;
-        $this->recurrencePostType = PostTypes::RECURRENCE;
 
         if ($core->utils->isWpCli()) {
             WP_CLI::add_command('events recurrences:create', $this->createRecurrencesCommand(...));
@@ -55,21 +51,23 @@ final class Recurrences
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
 
+        add_action('fp_events_create_recurrences', $this->scheduledCreateRecurrences(...), 10);
+
         return $this;
     }
 
     public function init_hook()
     {
-        if (!post_type_exists($this->postType)) {
-            throw new InvalidArgumentException("Post type doesn't exist: $this->postType");
+        if (!post_type_exists(PostTypes::EVENT)) {
+            throw new InvalidArgumentException(sprintf('Post type \'%s\' doesn\'t exist', PostTypes::EVENT));
         }
 
-        register_post_type($this->recurrencePostType, [
-            'public' => true,
-            'show_ui' => true,
+        register_post_type(PostTypes::RECURRENCE, [
+            'public' => false,
+            'show_ui' => current_user_can('administrator'),
             'publicly_queryable' => false,
             'has_archive' => false,
-            'show_in_menu' => "edit.php?post_type=$this->postType",
+            'show_in_menu' => 'edit.php?post_type=' . PostTypes::EVENT,
             'hierarchical' => false,
             'labels' => [
                 'menu_name' => 'Recurrences',
@@ -89,6 +87,20 @@ final class Recurrences
             return;
         }
 
+        if (!wp_next_scheduled('fp_events_create_recurrences', [$postID])) {
+            wp_schedule_single_event(time(), 'fp_events_create_recurrences', [$postID]);
+        }
+    }
+
+    /**
+     * Create recurrences on a scheduled event
+     */
+    private function scheduledCreateRecurrences(int $postID): void
+    {
+        if (!$this->core->isOriginalEvent($postID)) {
+            return;
+        }
+
         $recurrences = $this->createRecurrences($postID);
         $this->createPolylangTranslations($postID, $recurrences);
     }
@@ -100,36 +112,35 @@ final class Recurrences
      */
     private function createPolylangTranslations(int $postID, array $recurrences): void
     {
-        if (empty($recurrences)) {
-            return;
-        }
-
         if (!function_exists('pll_get_post_language')) {
             return;
         }
 
-        if (!$currentLang = pll_get_post_language($postID)) {
+        if (!$postLanguage = pll_get_post_language($postID)) {
             return;
         }
 
-        $postTranslations = pll_get_post_translations($postID);
+        /** @var array<string, int> $translations */
+        $translations = collect(pll_get_post_translations($postID))
+            ->reject($postID)
+            ->all();
 
-        if (empty($postTranslations)) {
+        if (empty($translations)) {
             return;
         }
 
         /** @var array<int, array<string, int>> $linked */
         $linked = collect($recurrences)
-            ->map(fn($recurrenceID) => [$currentLang => $recurrenceID])
+            ->map(fn($id) => [$postLanguage => $id])
             ->all();
 
-        collect($postTranslations)
-            ->reject($postID)
-            ->each(function ($translationID, $lang) use (&$linked) {
-                foreach ($this->createRecurrences($translationID) as $index => $recurrenceID) {
-                    $linked[$index][$lang] = $recurrenceID;
-                }
-            });
+        foreach ($translations as $language => $id) {
+            $recurrences = $this->createRecurrences($id);
+
+            foreach ($recurrences as $index => $recurrenceID) {
+                $linked[$index][$language] = $recurrenceID;
+            }
+        }
 
         /**
          * We have an array with this shape now:
@@ -140,8 +151,8 @@ final class Recurrences
          *   ....
          * ]
          */
-        foreach ($linked as $languagesAndIds) {
-            pll_save_post_translations($languagesAndIds);
+        foreach ($linked as $translations) {
+            pll_save_post_translations($translations);
         }
     }
 
@@ -173,7 +184,7 @@ final class Recurrences
         return get_posts([
             // Fetch from any language
             'lang' => '',
-            'post_type' => $this->recurrencePostType,
+            'post_type' => PostTypes::RECURRENCE,
             'post_parent' => $postID,
             'posts_per_page' => -1,
             'post_status' => 'any',
@@ -202,15 +213,11 @@ final class Recurrences
             return [];
         }
 
-        /**
-         * FIRST check for an existing acf $_POST data, to make sure
-         * the right most recent data lands in the clones.
-         *
-         * Falls back to the raw field value of the post, if $_POST data
-         * is not available (e.g. during any edit actions from the edit.php screen)
-         */
-        $rawFurtherDates = $_POST['acf'][$this->fieldKey]
-            ?? get_field($this->fieldKey, $postID, false);
+        $rawFurtherDates = get_field($this->fieldKey, $postID, false);
+
+        if (empty($rawFurtherDates)) {
+            return [];
+        }
 
         /**
          * Create a recurrence for each furtherDates entry
@@ -258,7 +265,7 @@ final class Recurrences
                 'post_date',
             ])
             ->merge([
-                'post_type' => $this->recurrencePostType,
+                'post_type' => PostTypes::RECURRENCE,
                 'post_name' => $postName,
                 'post_parent' => $postID,
                 'meta_input' => [
@@ -283,7 +290,7 @@ final class Recurrences
      */
     public function isRecurrence(int $postID): bool
     {
-        return !!$postID && get_post_type($postID) === $this->recurrencePostType;
+        return !!$postID && get_post_type($postID) === PostTypes::RECURRENCE;
     }
 
     /**
@@ -291,7 +298,7 @@ final class Recurrences
      */
     public function display_post_states(array $states, WP_Post $post): array
     {
-        if (get_post_type($post->ID) !== $this->recurrencePostType) {
+        if (get_post_type($post->ID) !== PostTypes::RECURRENCE) {
             return $states;
         }
 
