@@ -195,7 +195,7 @@ final class Core
      * Get all dates from an Event. Excludes recurrences in the past via filter
      * @return EventDate[]
      */
-    public function getEventDates(int|WP_Post $event): array
+    public function getEventRecurrences(int|WP_Post $event): array
     {
         if (!$event = $this->getEvent($event)) {
             return [];
@@ -218,6 +218,30 @@ final class Core
                 new DateTimeImmutable($dateString),
                 $postID,
             ))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Get all dates from an Event. Excludes recurrences in the past via filter
+     * @return EventDate[]
+     */
+    public function getEventDates(int|WP_Post $event): array
+    {
+        if (!$event = $this->getEvent($event)) {
+            return [];
+        }
+
+        return collect([$event->ID])
+            ->merge(fp_events()->recurrences->getRecurrences($event->ID))
+            ->map(fn($_, $postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
+            ->filter($this->isFilledString(...))
+            ->sort()
+            ->map(fn($dateString, $postID) => new EventDate(
+                new DateTimeImmutable($dateString),
+                $postID,
+            ))
+            ->values()
             ->all();
     }
 
@@ -1109,13 +1133,7 @@ final class Core
 
         $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        $rows = collect($dates)
-            ->values()
-            ->map(fn($date) => \strtotime($date))
-            ->filter(fn($timestamp) => !!$timestamp)
-            ->sort()
-            ->map(fn($timestamp) => [$subFieldKey => \date(Core::MYSQL_DATE_TIME_FORMAT, $timestamp)])
-            ->all();
+        $rows = $this->getFurtherDatesRows($dates);
 
         update_field(
             Fields::key(EventFields::FURTHER_DATES),
@@ -1126,6 +1144,20 @@ final class Core
         return collect($rows)
             ->pluck($subFieldKey)
             ->values()
+            ->all();
+    }
+
+
+    public function getFurtherDatesRows(array $dates): array
+    {
+        $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+
+        return collect($dates)
+            ->values()
+            ->map(fn($date) => \strtotime($date))
+            ->filter(fn($timestamp) => !!$timestamp)
+            ->sort()
+            ->map(fn($timestamp) => [$subFieldKey => \date(Core::MYSQL_DATE_TIME_FORMAT, $timestamp)])
             ->all();
     }
 }

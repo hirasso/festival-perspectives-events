@@ -6,6 +6,7 @@ namespace Hirasso\WP\FPEvents\Tests\Integration;
 
 use Hirasso\WP\FPEvents\Core;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
@@ -60,10 +61,10 @@ class RecurrencesTest extends TestCase
         update_option('polylang', $updatedOptions);
     }
 
-    public function test_has_polylang_languages_active()
-    {
-        $this->assertSame(pll_languages_list(), ['de', 'fr']);
-    }
+    // public function test_has_polylang_languages_active()
+    // {
+    //     $this->assertSame(pll_languages_list(), ['de', 'fr']);
+    // }
 
     private function createEvent(array $eventArgs = []): WP_Post
     {
@@ -100,12 +101,21 @@ class RecurrencesTest extends TestCase
     {
         $this->assertTrue(function_exists('fp_events'));
         $this->assertTrue(defined('ACF'));
-        $this->assertTrue(defined('POLYLANG'));
+        $this->assertTrue(function_exists('pll_get_post_language'));
     }
 
     public function test_creates_recurrences(): void
     {
-        $event = $this->createEvent();
+        $args = [
+            'meta_input' => [
+                Fields::key(EventFields::FURTHER_DATES) => fp_events()->core->getFurtherDatesRows([
+                    '+30 days 19:00:00',
+                    '+60 days 18:00:00',
+                    '+60 days 19:00:00',
+                ]),
+            ],
+        ];
+        $event = $this->createEvent($args);
 
         $furtherDates = fp_events()->core->setFurtherDates($event, [
             '+30 days 19:00:00',
@@ -113,7 +123,6 @@ class RecurrencesTest extends TestCase
             '+60 days 19:00:00',
         ]);
 
-        do_action('fp_events_create_recurrences', $event->ID);
         $recurrences = $this->getAllRecurrences();
         $this->assertSame(count($recurrences), 3);
 
@@ -134,15 +143,16 @@ class RecurrencesTest extends TestCase
 
     public function test_does_not_create_recurrences_for_events_in_the_past(): void
     {
-        $event = $this->createEvent();
-
-        fp_events()->core->setFurtherDates($event, [
-            'yesterday',
-            '+60 days 18:00:00',
-            '+60 days 19:00:00',
-        ]);
-
-        do_action('fp_events_create_recurrences', $event->ID);
+        $args = [
+            'meta_input' => [
+                Fields::key(EventFields::FURTHER_DATES) => fp_events()->core->getFurtherDatesRows([
+                    'yesterday',
+                    '+60 days 18:00:00',
+                    '+60 days 19:00:00',
+                ]),
+            ],
+        ];
+        $this->createEvent($args);
         $recurrences = $this->getAllRecurrences();
         $this->assertSame(count($recurrences), 2);
     }

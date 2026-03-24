@@ -51,8 +51,6 @@ final class Recurrences
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
 
-        add_action('fp_events_create_recurrences', $this->scheduledCreateRecurrences(...), 10);
-
         return $this;
     }
 
@@ -79,60 +77,44 @@ final class Recurrences
     }
 
     /**
-     * Hook into save_post
+     * Runs on save post
      */
-    public function save_post(int $postID): void
+    private function save_post(int $postID): void
     {
         if (!$this->core->isOriginalEvent($postID)) {
             return;
         }
 
-        if (!wp_next_scheduled('fp_events_create_recurrences', [$postID])) {
-            wp_schedule_single_event(time(), 'fp_events_create_recurrences', [$postID]);
-        }
-    }
-
-    /**
-     * Create recurrences on a scheduled event
-     */
-    private function scheduledCreateRecurrences(int $postID): void
-    {
-        if (!$this->core->isOriginalEvent($postID)) {
-            return;
-        }
-
-        $recurrences = $this->createRecurrences($postID);
-        $this->createPolylangTranslations($postID, $recurrences);
+        $this->createRecurrences($postID);
+        $this->createRecurrencesForTranslations($postID);
     }
 
     /**
      * Create recurrences for Polylang translations of an event
-     *
-     * @param list<int> $recurrences
      */
-    private function createPolylangTranslations(int $postID, array $recurrences): void
+    private function createRecurrencesForTranslations(int $postID): void
     {
-        if (!function_exists('pll_get_post_language')) {
+        if (!$this->core->isOriginalEvent($postID)) {
             return;
         }
 
-        if (!$postLanguage = pll_get_post_language($postID)) {
+        if (!function_exists('pll_get_post_translations')) {
             return;
         }
+
+        $postLanguage = pll_get_post_language($postID);
+
+        /** @var array<int, array<string, int>> $linked */
+        $linked = collect($this->getRecurrences($postID))
+            ->map(fn($id) => [$postLanguage => $id])
+            ->all();
 
         /** @var array<string, int> $translations */
-        $translations = collect(pll_get_post_translations($postID))
-            ->reject($postID)
-            ->all();
+        $translations = pll_get_post_translations($postID);
 
         if (empty($translations)) {
             return;
         }
-
-        /** @var array<int, array<string, int>> $linked */
-        $linked = collect($recurrences)
-            ->map(fn($id) => [$postLanguage => $id])
-            ->all();
 
         foreach ($translations as $language => $id) {
             $recurrences = $this->createRecurrences($id);
@@ -175,7 +157,7 @@ final class Recurrences
     /**
      * Get all recurrences of an event
      */
-    private function getRecurrences(int $postID)
+    public function getRecurrences(int $postID)
     {
         if (!$this->core->isOriginalEvent($postID)) {
             return [];
@@ -213,16 +195,16 @@ final class Recurrences
             return [];
         }
 
-        $rawFurtherDates = get_field($this->fieldKey, $postID, false);
+        $furtherDates = get_field($this->fieldKey, $postID, false) ?: [];
 
-        if (empty($rawFurtherDates)) {
+        if (empty($furtherDates)) {
             return [];
         }
 
         /**
          * Create a recurrence for each furtherDates entry
          */
-        return collect($rawFurtherDates)
+        return collect($furtherDates)
             ->pluck($this->subFieldKey)
             ->filter(fn(string $date) => !$this->core->isInThePast($date))
             ->map(fn(string $dateTime) => $this->createRecurrence($postID, $dateTime))
@@ -379,6 +361,6 @@ final class Recurrences
         }
 
         /** The save_post hook does all we need */
-        $postIDs->each(fn($id) => $this->save_post((int) $id));
+        $postIDs->each(fn($id) => $this->createRecurrences((int) $id));
     }
 }

@@ -15,6 +15,7 @@ use WP_Post;
 final class FPEvents
 {
     public Core $core;
+    public Recurrences $recurrences;
 
     private static ?self $instance = null;
 
@@ -24,13 +25,15 @@ final class FPEvents
 
         $utils = Utils::init();
         $core = Core::init($utils)->addHooks();
-        self::$instance->core = $core;
+        $recurrences = Recurrences::init($core)->addHooks();
 
         Locations::init($core)->addHooks();
-        Recurrences::init($core)->addHooks();
         EventFields::init($core)->addHooks();
         LocationFields::init($core)->addHooks();
         PolylangIntegration::init()->addHooks();
+
+        self::$instance->core = $core;
+        self::$instance->recurrences = $recurrences;
 
         return self::$instance;
     }
