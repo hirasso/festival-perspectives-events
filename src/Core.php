@@ -7,6 +7,7 @@ namespace Hirasso\WP\FPEvents;
 use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
 use InvalidArgumentException;
 use RuntimeException;
@@ -194,9 +195,9 @@ final class Core
      * Get all dates from an Event. Excludes recurrences in the past via filter
      * @return EventDate[]
      */
-    public function getEventDates(int|WP_Post $_post): array
+    public function getEventDates(int|WP_Post $event): array
     {
-        if (!$event = $this->getEvent($_post)) {
+        if (!$event = $this->getEvent($event)) {
             return [];
         }
 
@@ -1091,5 +1092,40 @@ final class Core
         ));
 
         return collect($results)->map(absint(...))->all();
+    }
+
+    /**
+     * Set further dates for an event manually
+     *
+     * @param list<string> $dates
+     *
+     * @return list<string> the mysql-formatted dates
+     */
+    public function setFurtherDates(int|WP_Post $event, array $dates): array
+    {
+        if (!$event = $this->getEvent($event)) {
+            throw new Exception(sprintf('Please provide an event'));
+        }
+
+        $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+
+        $rows = collect($dates)
+            ->values()
+            ->map(fn($date) => \strtotime($date))
+            ->filter(fn($timestamp) => !!$timestamp)
+            ->sort()
+            ->map(fn($timestamp) => [$subFieldKey => \date(Core::MYSQL_DATE_TIME_FORMAT, $timestamp)])
+            ->all();
+
+        update_field(
+            Fields::key(EventFields::FURTHER_DATES),
+            $rows,
+            $event,
+        );
+
+        return collect($rows)
+            ->pluck($subFieldKey)
+            ->values()
+            ->all();
     }
 }

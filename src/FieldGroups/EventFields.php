@@ -24,8 +24,8 @@ final class EventFields extends Fields
     public const EXTERNAL_LINK = 'acfe_event_external_link';
     public const TICKET_LINK = 'acfe_event_ticket_link';
 
-    protected const GROUP_KEY = 'group_acfe_event_settings';
-    protected const GROUP_TITLE = 'Event Settings';
+    private const GROUP_KEY = 'group_acfe_event_settings';
+    private const GROUP_TITLE = 'Event Settings';
 
     protected function addFields()
     {

@@ -63,7 +63,7 @@ final class PolylangIntegration
     /**
      * Check if Polylang is active
      */
-    protected function isPolylangActive(): bool
+    private function isPolylangActive(): bool
     {
         return function_exists('PLL');
     }
@@ -71,7 +71,7 @@ final class PolylangIntegration
     /**
      * Check if Polylang PRO is active
      */
-    protected function isPolylangProActive(): bool
+    private function isPolylangProActive(): bool
     {
         return $this->isPolylangActive() && !empty(\PLL()->translate_slugs);
     }
