@@ -122,7 +122,7 @@ class RecurrencesTest extends TestCase
         ]);
 
         do_action('fp_events_create_recurrences', $event->ID);
-        $recurrences = $this->getRecurrences();
+        $recurrences = $this->getAllRecurrences();
         $this->assertSame(count($recurrences), 2);
     }
 }
