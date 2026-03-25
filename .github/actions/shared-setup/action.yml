@@ -21,10 +21,10 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: package.json
         cache: pnpm
 
-    - name: Install Dependencies
+    - name: Install JS Dependencies
       shell: bash
       run: pnpm install --frozen-lockfile
 
@@ -37,7 +37,7 @@ runs:
         tools: composer:v2
         coverage: xdebug
 
-    - name: Install Composer Dependencies
-      if: ${{ inputs.php == 'true' }}
-      uses: ramsey/composer-install@a35c6ebd3d08125aaf8852dff361e686a1a67947 # 3.2.0
+    - name: Install Composer
+      shell: bash
+      run: composer update
 

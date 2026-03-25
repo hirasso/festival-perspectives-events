@@ -2,16 +2,13 @@ name: CI
 
 on:
   push:
-    branches:
-      main
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
-permissions:
-  contents: write # for merging the PR and creating the release
-  pull-requests: write # for creating the version PR
-
+# Cancels all previous workflow runs for pull requests that have not completed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -25,6 +22,10 @@ jobs:
       matrix:
         php: [8.2, 8.3]
 
+    env:
+      WP_ENV_PHP_VERSION: ${{ matrix.php }}
+      # WP_ENV_CORE: 'WordPress/WordPress'
+
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -33,21 +34,21 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
 
-      - name: Start wp-env-test container
-        env:
-          WP_ENV_PHP_VERSION: ${{ matrix.php }}
-          # WP_ENV_CORE: 'WordPress/WordPress'
-        run: |
-          pnpm run wp-env-test start
-          pnpm run wp-env-test:cli php --version
-          pnpm run wp-env-test:cli wp core version
+      - name: Start the wp-env Container
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: |
+            pnpm run env start
+            pnpm run composer update
+            pnpm run env run cli php --version
+            pnpm run env run cli wp core version
 
-      - name: Run PHPStan Tests
-        run: composer analyse
-
-      - name: Run Integration Tests
+      - name: Run Tests
         run: |
-          pnpm run test:integration
+          pnpm run composer analyse
+          pnpm run composer test
 
   e2eTests:
     name: E2E Tests
@@ -82,11 +83,17 @@ jobs:
         shell: bash
         run: npx playwright install-deps
 
-      - name: Start wp-env-test container
-        run: |
-          pnpm run wp-env-test start
-          pnpm run wp-env-test:cli php --version
-          pnpm run wp-env-test:cli wp core version
+      - name: Start the wp-env Container
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: |
+            pnpm run env start
+            rm composer.lock || true # We need to install fresh.
+            pnpm run composer install
+            pnpm run env run cli php --version
+            pnpm run env run cli wp core version
 
       - name: Run E2E Tests
         run: |
