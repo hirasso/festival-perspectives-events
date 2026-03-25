@@ -117,12 +117,6 @@ class RecurrencesTest extends TestCase
 
         $recurrences = $this->getAllRecurrences();
         $this->assertSame(count($recurrences), 6);
-        // $recurrencesFR = collect($recurrences)
-        //     ->filter(fn($p) => pll_get_post_language($p->ID) === 'fr')
-        //     ->dd();
-        // $recurrencesFR = $this->getAllRecurrences('fr');
-        // $this->assertSame(count($recurrencesDE), 3);
-        // $this->assertSame(count($recurrencesFR), 3);
 
         /**
          * For eqach further date, a matching
