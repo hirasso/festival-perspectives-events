@@ -21,15 +21,12 @@ tests_add_filter('muplugins_loaded', function () use ($rootDir) {
     define('PLL_ADMIN', true);
     require_once "$rootDir/vendor/.wp/plugins/advanced-custom-fields-pro/acf.php";
     require_once "$rootDir/vendor/.wp/plugins/polylang/polylang.php";
-});
 
+    /** Overwrite pll post types */
+    add_filter('pll_get_post_types', PostTypes::all(...));
+}, 1);
 
 tests_add_filter('plugins_loaded', function () {
-    /** activate our post types */
-    add_filter('pll_get_post_types', function (array $post_types): array {
-        return PostTypes::all();
-    });
-
     PLL()->model->add_language([
         'name'       => 'Deutsch',
         'slug'       => 'de',
@@ -47,9 +44,8 @@ tests_add_filter('plugins_loaded', function () {
     ]);
 });
 
-
 /** Start up the WP testing environment. */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';
 
-/** Initialize FPEvents() */
+/** Initialize FPEvents */
 fp_events();

@@ -98,7 +98,7 @@ final class Locations extends Singleton
             return;
         }
 
-        remove_action("wp_after_insert_post", [$this, 'wp_after_insert_post'], 20);
+        remove_action('wp_after_insert_post', [$this, 'wp_after_insert_post'], 20);
 
         do_action('acfe/save_location', $locationID, $post);
 

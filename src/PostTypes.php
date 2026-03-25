@@ -15,6 +15,7 @@ final readonly class PostTypes
 
     public static function all()
     {
-        return [self::EVENT, self::RECURRENCE, self::LOCATION];
+        $all = [self::EVENT, self::RECURRENCE, self::LOCATION];
+        return array_combine($all, $all);
     }
 }

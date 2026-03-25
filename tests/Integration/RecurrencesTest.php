@@ -23,7 +23,8 @@ class RecurrencesTest extends TestCase
         $this->assertSame(pll_languages_list(), ['de', 'fr']);
     }
 
-    private function createEvent(array $eventArgs = []): WP_Post
+    /** @return array{0: WP_Post, 1: WP_Post} */
+    private function createEvent(array $eventArgs = []): array
     {
         $location = $this->factory()->post->create_and_get([
             'post_type' => PostTypes::LOCATION,
@@ -34,20 +35,54 @@ class RecurrencesTest extends TestCase
         ]);
 
         $eventArgs = array_replace_recursive([
+            'post_status' => 'publish',
             'post_type' => PostTypes::EVENT,
-            'tax_input' => ['language' => 'en'], // no effect currently
             'meta_input' => [
                 EventFields::DATE_AND_TIME => \date(Core::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 10:00')),
                 EventFields::LOCATION_ID => $location->ID,
             ],
         ], $eventArgs);
 
-        return $this->factory()->post->create_and_get($eventArgs);
+        $languageTermIDs = array_combine(
+            pll_languages_list(['fields' => 'slug']),
+            pll_languages_list(['fields' => 'term_id']),
+        );
+
+        $de = $this->factory()->post->create_and_get(
+            array_replace_recursive($eventArgs, [
+                'post_title' => 'Event (de)',
+                'tax_input' => ['language' => $languageTermIDs['de']],
+            ]),
+        );
+        $fr = $this->factory()->post->create_and_get(
+            array_replace_recursive($eventArgs, [
+                'post_title' => 'Event (fr)',
+                'tax_input' => ['language' => $languageTermIDs['fr']],
+            ]),
+        );
+
+        pll_set_post_language($de->ID, 'de');
+        pll_set_post_language($fr->ID, 'fr');
+
+        $translations = pll_save_post_translations([
+            'de' => $de->ID,
+            'fr' => $fr->ID,
+        ]);
+
+        /** post IDs should be constant between tests */
+        $this->assertArrayHasKey('de', $translations);
+        $this->assertArrayHasKey('fr', $translations);
+
+        return [$de, $fr];
     }
 
-    private function getAllRecurrences(): array
+    /**
+     * @return list<WP_Post>
+     */
+    private function getAllRecurrences(?string $lang = null): array
     {
         return get_posts([
+            'lang' => $lang,
             'post_type' => PostTypes::RECURRENCE,
             'post_status' => 'any',
             'posts_per_page' => -1,
@@ -72,7 +107,7 @@ class RecurrencesTest extends TestCase
                 ]),
             ],
         ];
-        $event = $this->createEvent($args);
+        [$event, $eventFR] = $this->createEvent($args);
 
         $furtherDates = fp_events()->core->setFurtherDates($event, [
             '+30 days 19:00:00',
@@ -81,11 +116,17 @@ class RecurrencesTest extends TestCase
         ]);
 
         $recurrences = $this->getAllRecurrences();
-        $this->assertSame(count($recurrences), 3);
+        $this->assertSame(count($recurrences), 6);
+        // $recurrencesFR = collect($recurrences)
+        //     ->filter(fn($p) => pll_get_post_language($p->ID) === 'fr')
+        //     ->dd();
+        // $recurrencesFR = $this->getAllRecurrences('fr');
+        // $this->assertSame(count($recurrencesDE), 3);
+        // $this->assertSame(count($recurrencesFR), 3);
 
         /**
          * For eqach further date, a matching
-         * recurrence should have been created
+         * recurrence should have been created, in both languages
          */
         collect($furtherDates)
             ->each(function ($furtherDate, $index) use ($recurrences, $event) {
@@ -111,6 +152,6 @@ class RecurrencesTest extends TestCase
         ];
         $this->createEvent($args);
         $recurrences = $this->getAllRecurrences();
-        $this->assertSame(count($recurrences), 2);
+        $this->assertSame(count($recurrences), 4);
     }
 }

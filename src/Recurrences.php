@@ -37,7 +37,7 @@ final class Recurrences extends Singleton
     private function addHooks(): void
     {
         add_action('init', [$this, 'init_hook']);
-        add_action('save_post', $this->save_post(...), 20);
+        add_action('save_post', [$this, 'save_post'], 20);
         add_action('trashed_post', [$this, 'deleteRecurrences']);
         add_action('before_delete_post', [$this, 'deleteRecurrences']);
         add_filter('display_post_states', [$this, 'display_post_states'], 10, 2);
