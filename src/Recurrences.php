@@ -110,7 +110,7 @@ final class Recurrences extends Singleton
          *
          * @var array<int, array<string, int>> $recurrenceGroups
          */
-        $recurrenceGroups = collect(fp_events()->getRecurrences($postID))
+        $recurrenceGroups = collect(fpe()->getRecurrences($postID))
             ->map(fn($id) => [$postLanguage => $id])
             ->all();
 
@@ -135,7 +135,7 @@ final class Recurrences extends Singleton
             return;
         }
 
-        $recurrences = fp_events()->getRecurrences($postID);
+        $recurrences = fpe()->getRecurrences($postID);
 
         foreach ($recurrences as $recurrenceID) {
             wp_delete_post($recurrenceID, true);

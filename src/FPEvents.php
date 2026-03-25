@@ -86,7 +86,7 @@ final class FPEvents extends Singleton
      */
     private function setupArchiver(): void
     {
-        $hook = 'fp_events_run_archiver';
+        $hook = 'fpe_run_archiver';
 
         add_action($hook, $this->runArchiver(...));
 

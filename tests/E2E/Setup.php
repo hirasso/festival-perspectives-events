@@ -39,12 +39,12 @@ final class Setup
 
     public function __construct()
     {
-        if (!function_exists('fp_events')) {
+        if (!function_exists('fpe')) {
             return;
         }
 
         /** initialize the library */
-        fp_events();
+        fpe();
 
         /** we don't need the polylang wizard */
         delete_transient('pll_activation_redirect');

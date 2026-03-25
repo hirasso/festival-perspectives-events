@@ -78,7 +78,7 @@ class RecurrencesTest extends TestCase
 
     public function test_has_required_plugins(): void
     {
-        $this->assertTrue(function_exists('fp_events'));
+        $this->assertTrue(function_exists('fpe'));
         $this->assertTrue(defined('ACF'));
         $this->assertTrue(function_exists('pll_get_post_language'));
     }
@@ -91,13 +91,13 @@ class RecurrencesTest extends TestCase
             '+60 days 16:00:00',
         ];
         [$event, $eventFR] = $this->createEvent($furtherDates);
-        fp_events()->setFurtherDates($event, $furtherDates);
+        fpe()->setFurtherDates($event, $furtherDates);
 
-        $recurrences = fp_events()->getRecurrences($event->ID);
+        $recurrences = fpe()->getRecurrences($event->ID);
         $this->assertSame(count($recurrences), count($furtherDates));
 
         // Only a simple check for french :)
-        $this->assertSame(count(fp_events()->getRecurrences($eventFR->ID)), 3);
+        $this->assertSame(count(fpe()->getRecurrences($eventFR->ID)), 3);
 
         /**
          * For each further date, a matching
@@ -118,13 +118,13 @@ class RecurrencesTest extends TestCase
     {
         [$event] = $this->createEvent();
 
-        fp_events()->setFurtherDates($event, [
+        fpe()->setFurtherDates($event, [
             'yesterday',
             '+60 days 18:00:00',
             '+60 days 19:00:00',
         ]);
 
-        $recurrences = fp_events()->getRecurrences($event->ID);
+        $recurrences = fpe()->getRecurrences($event->ID);
 
         $this->assertSame(count($recurrences), 2);
     }

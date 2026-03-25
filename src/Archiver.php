@@ -51,7 +51,7 @@ final class Archiver
      */
     private function deleteAllExpiredRecurrences(): int
     {
-        $expiredRecurrences = fp_events()->getExpiredEvents(PostTypes::RECURRENCE);
+        $expiredRecurrences = fpe()->getExpiredEvents(PostTypes::RECURRENCE);
 
         foreach ($expiredRecurrences as $postID) {
             wp_delete_post($postID, true);

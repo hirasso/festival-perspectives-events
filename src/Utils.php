@@ -138,7 +138,7 @@ final class Utils extends Singleton
     public function addWPCLICommand(string $name, callable $callable, array $args = [])
     {
         if ($this->isWpCli()) {
-            WP_CLI::add_command("events $name", $callable, $args);
+            WP_CLI::add_command("fpe {$name}", $callable, $args);
         }
 
     }
