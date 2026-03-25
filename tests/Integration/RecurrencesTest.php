@@ -23,7 +23,7 @@ class RecurrencesTest extends TestCase
     }
 
     /** @return array{0: WP_Post, 1: WP_Post} */
-    private function createEvent(array $furtherDates = []): array
+    private function createEvent(): array
     {
         $location = $this->factory()->post->create_and_get([
             'post_type' => PostTypes::LOCATION,
@@ -53,7 +53,6 @@ class RecurrencesTest extends TestCase
                 'tax_input' => ['language' => $languageTermIDs['de']],
             ]),
         );
-        fp_events()->setFurtherDates($de, $furtherDates);
 
         $fr = $this->factory()->post->create_and_get(
             array_replace_recursive($eventArgs, [
@@ -61,7 +60,6 @@ class RecurrencesTest extends TestCase
                 'tax_input' => ['language' => $languageTermIDs['fr']],
             ]),
         );
-        fp_events()->setFurtherDates($fr, $furtherDates);
 
         pll_set_post_language($de->ID, 'de');
         pll_set_post_language($fr->ID, 'fr');
@@ -93,9 +91,13 @@ class RecurrencesTest extends TestCase
             '+60 days 16:00:00',
         ];
         [$event, $eventFR] = $this->createEvent($furtherDates);
+        fp_events()->setFurtherDates($event, $furtherDates);
 
-        $recurrences = fp_events()->recurrences->getRecurrences($event->ID);
-        $this->assertSame(count($recurrences), 3);
+        $recurrences = fp_events()->getRecurrences($event->ID);
+        $this->assertSame(count($recurrences), count($furtherDates));
+
+        // Only a simple check for french :)
+        $this->assertSame(count(fp_events()->getRecurrences($eventFR->ID)), 3);
 
         /**
          * For each further date, a matching
@@ -114,13 +116,15 @@ class RecurrencesTest extends TestCase
 
     public function test_does_not_create_recurrences_for_events_in_the_past(): void
     {
-        [$event] = $this->createEvent([
+        [$event] = $this->createEvent();
+
+        fp_events()->setFurtherDates($event, [
             'yesterday',
             '+60 days 18:00:00',
             '+60 days 19:00:00',
         ]);
 
-        $recurrences = fp_events()->recurrences->getRecurrences($event->ID);
+        $recurrences = fp_events()->getRecurrences($event->ID);
 
         $this->assertSame(count($recurrences), 2);
     }

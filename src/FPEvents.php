@@ -137,7 +137,7 @@ final class FPEvents extends Singleton
     /**
      * Get an event, only if the provided post/post_id is an event
      */
-    private function getEvent(mixed $post): ?WP_Post
+    public function getEvent(mixed $post): ?WP_Post
     {
         $post = get_post($post);
         return $this->isEvent($post) ? $post : null;
@@ -231,7 +231,7 @@ final class FPEvents extends Singleton
         }
 
         return collect([$event->ID])
-            ->merge($this->recurrences->getRecurrences($event->ID))
+            ->merge($this->getRecurrences($event->ID))
             ->map(fn($_, $postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
             ->filter($this->utils->isFilledString(...))
             ->sort()
@@ -1135,7 +1135,7 @@ final class FPEvents extends Singleton
             $event,
         );
 
-        $this->recurrences->createRecurrences($event->ID);
+        $this->recurrences->updateRecurrences($event->ID);
     }
 
     /**
@@ -1182,5 +1182,26 @@ final class FPEvents extends Singleton
         ])
         ->filter($this->utils->isFilledString(...))
         ->join(', ');
+    }
+
+    /**
+     * Get all recurrences of an event
+     */
+    public function getRecurrences(int $postID)
+    {
+        if (!$this->isOriginalEvent($postID)) {
+            return [];
+        }
+
+        return get_posts([
+            // Ignore the language
+            'lang' => '',
+            'post_type' => PostTypes::RECURRENCE,
+            'post_parent' => $postID,
+            'posts_per_page' => -1,
+            'post_status' => 'any',
+            'fields' => 'ids',
+            'suppress_filters' => true,
+        ]);
     }
 }
