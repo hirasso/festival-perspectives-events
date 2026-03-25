@@ -37,8 +37,7 @@ jobs:
           max_attempts: 3
           command: |
             pnpm run env start
-            rm composer.lock || true # We need to install fresh.
-            pnpm run composer install
+            pnpm run composer update
             pnpm run env run cli php --version
             pnpm run env run cli wp core version
 

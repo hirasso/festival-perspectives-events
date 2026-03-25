@@ -1996,29 +1996,29 @@
         },
         {
             "name": "jolicode/jolinotif",
-            "version": "v3.3.0",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jolicode/JoliNotif.git",
-                "reference": "7083df4c4dc614f20bf16dc3ad53f705460bd1dd"
+                "reference": "6f6490f8fd062deda601a8bfc03ea03305253d29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jolicode/JoliNotif/zipball/7083df4c4dc614f20bf16dc3ad53f705460bd1dd",
-                "reference": "7083df4c4dc614f20bf16dc3ad53f705460bd1dd",
+                "url": "https://api.github.com/repos/jolicode/JoliNotif/zipball/6f6490f8fd062deda601a8bfc03ea03305253d29",
+                "reference": "6f6490f8fd062deda601a8bfc03ea03305253d29",
                 "shasum": ""
             },
             "require": {
                 "jolicode/php-os-helper": "^0.3",
-                "php": ">=8.3",
+                "php": ">=8.2",
                 "psr/log": "^1.0 || ^2.0 || ^3.0",
                 "symfony/deprecation-contracts": "^3",
                 "symfony/process": "^6.4 || ^7.3 || ^8.0"
             },
             "require-dev": {
                 "monolog/monolog": "^3.9",
-                "phpunit/phpunit": "^12.4.5",
-                "symfony/finder": "^6.4 || ^7.3 || ^8.0"
+                "symfony/finder": "^6.4 || ^7.3 || ^8.0",
+                "symfony/phpunit-bridge": "^7.3 || ^8.0"
             },
             "suggest": {
                 "ext-ffi": "Needed to send notifications via libnotify on Linux"
@@ -2057,7 +2057,7 @@
             ],
             "support": {
                 "issues": "https://github.com/jolicode/JoliNotif/issues",
-                "source": "https://github.com/jolicode/JoliNotif/tree/v3.3.0"
+                "source": "https://github.com/jolicode/JoliNotif/tree/v3.2.0"
             },
             "funding": [
                 {
@@ -2065,7 +2065,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-04T10:50:17+00:00"
+            "time": "2025-10-16T21:31:31+00:00"
         },
         {
             "name": "jolicode/php-os-helper",
