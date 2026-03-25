@@ -16,54 +16,12 @@ class RecurrencesTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        // $this->setupPolylangLanguages();
     }
 
-    /**
-     * Set up Polylang for integration tests
-     * - languages "de" (default) and "fr"
-     */
-    private function setupPolylangLanguages(): void
+    public function test_has_polylang_languages_active()
     {
-        if (!empty(pll_languages_list())) {
-            return;
-        }
-
-        PLL()->model->add_language([
-            'name'       => 'Deutsch',
-            'slug'       => 'de',
-            'locale'     => 'de_DE',
-            'rtl'        => false,
-            'term_group' => 0,
-        ]);
-
-        PLL()->model->add_language([
-            'name'       => 'Français',
-            'slug'       => 'fr',
-            'locale'     => 'fr_FR',
-            'rtl'        => false,
-            'term_group' => 1,
-        ]);
-
-        $options = get_option('polylang') ?: [];
-
-        $updatedOptions = collect($options)
-            ->replaceRecursive([
-                'post_types' => [
-                    PostTypes::EVENT,
-                    PostTypes::RECURRENCE,
-                    PostTypes::LOCATION,
-                ],
-            ])
-            ->all();
-
-        update_option('polylang', $updatedOptions);
+        $this->assertSame(pll_languages_list(), ['de', 'fr']);
     }
-
-    // public function test_has_polylang_languages_active()
-    // {
-    //     $this->assertSame(pll_languages_list(), ['de', 'fr']);
-    // }
 
     private function createEvent(array $eventArgs = []): WP_Post
     {
