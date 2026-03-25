@@ -37,7 +37,3 @@ runs:
         tools: composer:v2
         coverage: xdebug
 
-    - name: Install Composer Dependencies
-      if: ${{ inputs.php == 'true' }}
-      uses: ramsey/composer-install@a35c6ebd3d08125aaf8852dff361e686a1a67947 # 3.2.0
-
