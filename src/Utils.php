@@ -8,17 +8,9 @@ use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use WP_Query;
 use wpdb;
 
-final class Utils
+final class Utils extends Singleton
 {
-    private static ?self $instance = null;
-
-    private function __construct() {}
-
-    public static function init()
-    {
-        self::$instance ??= new self();
-        return self::$instance;
-    }
+    protected function __construct() {}
 
     /**
      * Access the global wpdb instance

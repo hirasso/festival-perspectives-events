@@ -12,30 +12,27 @@ use WP_Post;
 /**
  * Manage events, recurrences and locations using Advanced Custom Fields
  */
-final class FPEvents
+final class FPEvents extends Singleton
 {
     public Core $core;
     public Recurrences $recurrences;
 
-    private static ?self $instance = null;
-
-    public static function init()
+    protected function __construct()
     {
-        self::$instance ??= new self();
+        $this->core = Core::instance();
+        $this->recurrences = Recurrences::instance();
+    }
 
-        $utils = Utils::init();
-        $core = Core::init($utils)->addHooks();
-        $recurrences = Recurrences::init($core)->addHooks();
+    public function addHooks(): static
+    {
+        $this->core->addHooks();
+        $this->recurrences->addHooks();
+        Locations::instance()->addHooks();
+        EventFields::instance()->addHooks();
+        LocationFields::instance()->addHooks();
+        PolylangIntegration::instance()->addHooks();
 
-        Locations::init($core)->addHooks();
-        EventFields::init($core)->addHooks();
-        LocationFields::init($core)->addHooks();
-        PolylangIntegration::init()->addHooks();
-
-        self::$instance->core = $core;
-        self::$instance->recurrences = $recurrences;
-
-        return self::$instance;
+        return $this;
     }
 
     /**

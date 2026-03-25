@@ -15,24 +15,19 @@ use WP_CLI;
 /**
  * Automatically create event recurrences, based on an ACF repeater field containing dates
  */
-final class Recurrences
+final class Recurrences extends Singleton
 {
     private string $fieldKey;
     private string $subFieldKey;
+    private Core $core;
 
-    private static ?self $instance = null;
-    public static function init(Core $core)
+    protected function __construct()
     {
-        self::$instance ??= new self($core);
-        return self::$instance;
-    }
-
-    private function __construct(private Core $core)
-    {
+        $this->core = Core::instance();
         $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
         $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        if ($core->utils->isWpCli()) {
+        if ($this->core->utils->isWpCli()) {
             WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
         }
     }

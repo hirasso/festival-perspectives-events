@@ -19,19 +19,16 @@ use WP_Term;
 /**
  * Manage events, recurrences and locations using Advanced Custom Fields
  */
-final class Core
+final class Core extends Singleton
 {
-    private static ?self $instance = null;
+    public Utils $utils;
 
     public const MYSQL_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     public const FILTER_TAXONOMY = 'acfe-event_filter';
 
-    public function __construct(public Utils $utils) {}
-
-    public static function init(Utils $utils)
+    protected function __construct()
     {
-        self::$instance ??= new self($utils);
-        return self::$instance;
+        $this->utils = Utils::instance();
     }
 
     public function addHooks(): self

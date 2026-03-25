@@ -9,19 +9,11 @@ use WP_Term;
 /**
  * Polylang integration for FPEvents
  */
-final class PolylangIntegration
+final class PolylangIntegration extends Singleton
 {
-    private static ?self $instance = null;
-
-    private function __construct()
+    protected function __construct()
     {
         $this->registerStrings();
-    }
-
-    public static function init()
-    {
-        self::$instance ??= new self();
-        return self::$instance;
     }
 
     public function addHooks(): self

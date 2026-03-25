@@ -10,15 +10,13 @@ use Hirasso\WP\FPEvents\Core;
 /**
  * Global field names
  */
-abstract class Fields
+abstract class Fields extends \Hirasso\WP\FPEvents\Singleton
 {
-    private static array $instances = [];
+    protected Core $core;
 
-    final protected function __construct(protected Core $core) {}
-
-    final public static function init(Core $core): static
+    protected function __construct()
     {
-        return self::$instances[static::class] ??= new static($core);
+        $this->core = Core::instance();
     }
 
     final public function addHooks(): static

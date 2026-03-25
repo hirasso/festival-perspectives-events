@@ -12,16 +12,13 @@ use WP_Post;
 /**
  * Automatically attach locations to events
  */
-final class Locations
+final class Locations extends Singleton
 {
-    private static ?self $instance = null;
+    private Core $core;
 
-    private function __construct(private Core $core) {}
-
-    public static function init(Core $core)
+    protected function __construct()
     {
-        self::$instance ??= new self($core);
-        return self::$instance;
+        $this->core = Core::instance();
     }
 
     /**
