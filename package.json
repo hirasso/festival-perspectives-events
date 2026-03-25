@@ -3,7 +3,10 @@
   "version": "1.1.1",
   "private": true,
   "type": "module",
-  "author": "Rasso Hilber <mail@rassohilber.com>",
+  "engineStrict": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "prepare": "husky",
     "make-pot": "tools/make-pot.sh",
