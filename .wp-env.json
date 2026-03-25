@@ -6,12 +6,12 @@
   "plugins": [
     "./vendor/.wp/plugins/advanced-custom-fields-pro",
     "./vendor/.wp/plugins/polylang",
-    "./vendor/.wp/plugins/classic-editor"
+    "./vendor/.wp/plugins/classic-editor",
+    "./tests/E2E"
   ],
   "port": 2233,
   "mappings": {
-    "wp-content/plugins/festival-perspectives-events": ".",
-    "wp-content/plugins/festival-perspectives-events-setup": "./tests/E2E"
+    "wp-content/plugins/festival-perspectives-events": "."
   },
   "testsEnvironment": false,
   "config": {
