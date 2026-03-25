@@ -27,11 +27,6 @@ final class FPEvents extends Singleton
 
     protected function __construct()
     {
-        $this->load();
-    }
-
-    private function load(): void
-    {
         $this->utils = Utils::instance();
         $this->addHooks();
 

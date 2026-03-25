@@ -25,9 +25,13 @@ tests_add_filter('muplugins_loaded', function () use ($rootDir) {
     /** Overwrite pll post types */
     add_filter('pll_get_post_types', PostTypes::all(...));
 
-    /** Initialize FPEvents */
-    fpe();
 }, 1);
+
+/** Initialize FPEvents, as if activated from a theme */
+tests_add_filter('after_setup_theme', function () {
+    fpe();
+});
+
 
 tests_add_filter('plugins_loaded', function () {
     PLL()->model->add_language([
