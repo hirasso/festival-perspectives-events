@@ -1,5 +1,11 @@
 # Changelog: `hirasso/festival-perspectives-events`
 
+## 1.1.1
+
+### Patch Changes
+
+- 7b81cad: Renamed the shortcut function to the public API from `fp_events()` to `fpe()`
+
 ## 1.1.0
 
 ### Minor Changes
