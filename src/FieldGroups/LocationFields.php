@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
-use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
 use Hirasso\WP\FPEvents\Singleton;
 use Hirasso\WP\FPEvents\Utils;
@@ -139,7 +138,7 @@ final class LocationFields extends Singleton
         }
 
         /** @var WP_Post[] $attachedEvents */
-        $attachedEvents = FPEvents::instance()->getEventsAtLocation(
+        $attachedEvents = fpe()->getEventsAtLocation(
             get_post(),
             amount: -1,
             ids: false,

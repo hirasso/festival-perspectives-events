@@ -2,7 +2,9 @@
 
 use Hirasso\WP\FPEvents\FPEvents;
 
-function fpe(): FPEvents
-{
-    return FPEvents::instance();
+if (!function_exists('fpe')) {
+    function fpe()
+    {
+        return FPEvents::instance();
+    }
 }

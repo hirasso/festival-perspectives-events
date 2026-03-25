@@ -7,7 +7,6 @@ namespace Hirasso\WP\FPEvents;
 use DateTimeImmutable;
 use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
 use InvalidArgumentException;

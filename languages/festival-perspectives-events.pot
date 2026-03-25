@@ -12,36 +12,36 @@ msgstr ""
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: festival-perspectives-events\n"
 
-#: src/FPEvents.php:714
+#: src/FPEvents.php:713
 msgid "Minutes"
 msgstr ""
 
-#: src/FPEvents.php:759
+#: src/FPEvents.php:758
 msgid "Today"
 msgstr ""
 
-#: src/FPEvents.php:760
+#: src/FPEvents.php:759
 msgid "Yesterday"
 msgstr ""
 
-#: src/FPEvents.php:761
+#: src/FPEvents.php:760
 msgid "Tomorrow"
 msgstr ""
 
-#: src/FPEvents.php:951
-#: src/FPEvents.php:955
+#: src/FPEvents.php:950
+#: src/FPEvents.php:954
 msgid "Location"
 msgstr ""
 
-#: src/FPEvents.php:952
+#: src/FPEvents.php:951
 msgid "Dates"
 msgstr ""
 
-#: src/FPEvents.php:956
+#: src/FPEvents.php:955
 msgid "Date"
 msgstr ""
 
-#: src/FPEvents.php:1031
+#: src/FPEvents.php:1030
 #, php-format
 msgid "Year %s"
 msgstr ""

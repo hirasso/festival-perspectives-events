@@ -32,7 +32,7 @@ final class Locations extends Singleton
 
     public function add_post_type()
     {
-        FPEvents::instance()->addPostType(
+        fpe()->addPostType(
             name: PostTypes::LOCATION,
             slug: 'location',
             args: [
@@ -56,7 +56,7 @@ final class Locations extends Singleton
      */
     public function update_post_meta_hook(mixed $x, int $id, string $key, mixed $value): mixed
     {
-        if (FPEvents::instance()->isEvent($id) && $key === EventFields::LOCATION_ID) {
+        if (fpe()->isEvent($id) && $key === EventFields::LOCATION_ID) {
             $this->updateEvent($id, (int) $value);
         }
 
@@ -68,14 +68,14 @@ final class Locations extends Singleton
      */
     private function updateEvent(int $eventID, int $locationID): void
     {
-        if (!FPEvents::instance()->isEvent($eventID)) {
+        if (!fpe()->isEvent($eventID)) {
             throw new InvalidArgumentException("Not an event: $eventID");
         }
 
         $name = "";
         $sortName = "";
 
-        if (FPEvents::instance()->isLocation($locationID)) {
+        if (fpe()->isLocation($locationID)) {
             $name = get_the_title($locationID);
             $sortName = get_post_meta($locationID, LocationFields::SORT_NAME, true) ?: $name;
         }
@@ -90,8 +90,8 @@ final class Locations extends Singleton
     public function wp_after_insert_post(int $locationID, WP_Post $post): void
     {
         if (
-            !FPEvents::instance()->isLocation($post)
-            || !FPEvents::instance()->isVisiblePostStatus($locationID)
+            !fpe()->isLocation($post)
+            || !fpe()->isVisiblePostStatus($locationID)
         ) {
             return;
         }
@@ -100,7 +100,7 @@ final class Locations extends Singleton
 
         do_action('acfe/save_location', $locationID, $post);
 
-        foreach (FPEvents::instance()->getEventsAtLocation($locationID) as $eventID) {
+        foreach (fpe()->getEventsAtLocation($locationID) as $eventID) {
             $this->updateEvent($eventID, $locationID);
         }
 
@@ -118,7 +118,7 @@ final class Locations extends Singleton
 
         $postID = (int) $args[0];
 
-        return count(FPEvents::instance()->getEventsAtLocation($postID, 1))
+        return count(fpe()->getEventsAtLocation($postID, 1))
             ? ['do_not_allow']
             : $caps;
     }

@@ -69,7 +69,7 @@ final class Recurrences extends Singleton
      */
     public function updateRecurrences(int $postID): void
     {
-        if (!FPEvents::instance()->isOriginalEvent($postID)) {
+        if (!fpe()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -85,7 +85,7 @@ final class Recurrences extends Singleton
      */
     private function createRecurrencesForTranslations(int $postID, array $dates): void
     {
-        if (!FPEvents::instance()->isOriginalEvent($postID)) {
+        if (!fpe()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -131,7 +131,7 @@ final class Recurrences extends Singleton
      */
     public function deleteRecurrences(int $postID): void
     {
-        if (!FPEvents::instance()->isOriginalEvent($postID)) {
+        if (!fpe()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -152,7 +152,7 @@ final class Recurrences extends Singleton
      */
     private function createRecurrences(int $postID, array $dates): array
     {
-        if (!FPEvents::instance()->isOriginalEvent($postID)) {
+        if (!fpe()->isOriginalEvent($postID)) {
             return [];
         }
 
@@ -162,7 +162,7 @@ final class Recurrences extends Singleton
          * Create a recurrence for each provided date
          */
         return collect($dates)
-            ->filter(fn(string $date) => !FPEvents::instance()->isInThePast($date))
+            ->filter(fn(string $date) => !fpe()->isInThePast($date))
             ->map(fn(string $dateTime) => $this->createRecurrence($postID, $dateTime))
             ->values()
             ->all();
@@ -173,7 +173,7 @@ final class Recurrences extends Singleton
      */
     public function getFurtherDates(int|WP_Post $post): array
     {
-        if (!$event = FPEvents::instance()->getEvent($post)) {
+        if (!$event = fpe()->getEvent($post)) {
             return [];
         }
 
@@ -187,15 +187,15 @@ final class Recurrences extends Singleton
      */
     private function createRecurrence(int $postID, string $dateTime): int
     {
-        if (!FPEvents::instance()->isOriginalEvent($postID)) {
+        if (!fpe()->isOriginalEvent($postID)) {
             throw new RuntimeException(sprintf(__('Not an event: %d'), $postID));
         }
 
-        if (!FPEvents::instance()->parseDateInFormat($dateTime)) {
+        if (!fpe()->parseDateInFormat($dateTime)) {
             throw new Exception("Invalid date format: $dateTime");
         }
 
-        $originalMeta = FPEvents::instance()->getFlatPostMeta($postID);
+        $originalMeta = fpe()->getFlatPostMeta($postID);
         $originalPostArray = get_post($postID, ARRAY_A);
 
         $taxInput = collect(get_post_taxonomies($postID))
@@ -326,7 +326,7 @@ final class Recurrences extends Singleton
     {
         $postIDs = collect($args);
 
-        if ($invalid = $postIDs->first(fn($id) => !FPEvents::instance()->isOriginalEvent($id))) {
+        if ($invalid = $postIDs->first(fn($id) => !fpe()->isOriginalEvent($id))) {
             WP_CLI::error("Not a valid event post ID: '{$invalid}'");
         }
 
