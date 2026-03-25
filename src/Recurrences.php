@@ -70,7 +70,7 @@ final class Recurrences extends Singleton
     /**
      * Runs on save post
      */
-    private function save_post(int $postID): void
+    public function save_post(int $postID): void
     {
         if (!$this->core->isOriginalEvent($postID)) {
             return;
