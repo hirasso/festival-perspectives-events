@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\Tests\E2E;
 
+use Hirasso\WP\FPEvents\FPEvents;
+use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use Hirasso\WP\FPEvents\PostTypes;
 
 /** Exit if accessed directly */
@@ -31,6 +34,52 @@ final class Setup
         if (function_exists('fpe')) {
             fpe();
         }
+
+        $this->createTestPosts();
+    }
+
+    private function createTestPosts(): void
+    {
+        $locationId = $this->ensureTestLocation();
+        $this->ensureTestEvent($locationId);
+    }
+
+    private function ensureTestLocation(): int
+    {
+        $existing = get_page_by_path('e2e-test-location', OBJECT, PostTypes::LOCATION);
+        if ($existing) {
+            return $existing->ID;
+        }
+
+        return wp_insert_post([
+            'post_type'   => PostTypes::LOCATION,
+            'post_title'  => 'E2E Test Location',
+            'post_name'   => 'e2e-test-location',
+            'post_status' => 'publish',
+            'meta_input'  => [
+                LocationFields::ADDRESS => "Test Street 1\n12345 Test City",
+                LocationFields::AREA    => 'Test Area',
+            ],
+        ]);
+    }
+
+    private function ensureTestEvent(int $locationId): int
+    {
+        $existing = get_page_by_path('e2e-test-event', OBJECT, PostTypes::EVENT);
+        if ($existing) {
+            return $existing->ID;
+        }
+
+        return wp_insert_post([
+            'post_type'   => PostTypes::EVENT,
+            'post_title'  => 'E2E Test Event',
+            'post_name'   => 'e2e-test-event',
+            'post_status' => 'publish',
+            'meta_input'  => [
+                EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('+6 months')),
+                EventFields::LOCATION_ID   => $locationId,
+            ],
+        ]);
     }
 
     private function setupPolylang()
