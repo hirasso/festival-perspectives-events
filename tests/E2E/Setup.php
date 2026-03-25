@@ -11,7 +11,7 @@ use Extended\ACF\Fields\Text;
 use Extended\ACF\Fields\Textarea;
 use Extended\ACF\Fields\URL;
 use Extended\ACF\Location;
-use Hirasso\WP\FPEvents\Core;
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
@@ -39,12 +39,12 @@ final class Setup
 
     public function __construct()
     {
-        if (!function_exists('fp_events')) {
+        if (!function_exists('fpe')) {
             return;
         }
 
         /** initialize the library */
-        fp_events();
+        fpe();
 
         /** we don't need the polylang wizard */
         delete_transient('pll_activation_redirect');
@@ -191,7 +191,7 @@ final class Setup
             'post_status' => 'publish',
             'meta_input' => [
                 'e2e_test_event' => true,
-                EventFields::DATE_AND_TIME => \date(Core::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 20:00')),
+                EventFields::DATE_AND_TIME => \date(FPEvents::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 20:00')),
                 EventFields::LOCATION_ID => $locationID,
             ],
         ]);

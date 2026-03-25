@@ -9,52 +9,40 @@ use WP_Post;
 use InvalidArgumentException;
 use RuntimeException;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use WP_CLI;
 
 /**
  * Automatically create event recurrences, based on an ACF repeater field containing dates
  */
-final class Recurrences
+final class Recurrences extends Singleton
 {
     private string $fieldKey;
     private string $subFieldKey;
 
-    private static ?self $instance = null;
-    public static function init(Core $core)
+    protected function __construct()
     {
-        self::$instance ??= new self($core);
-        return self::$instance;
+        parent::__construct();
+
+        $this->fieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
+        $this->subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
+
+        Utils::instance()->addWPCLICommand('recurrences update', $this->updateRecurrencesCommand(...));
+
+        $this->addHooks();
     }
 
-    private function __construct(private Core $core)
+    private function addHooks(): void
     {
-        $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
-        $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
-
-        if ($core->utils->isWpCli()) {
-            WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
-        }
-    }
-
-    public function addHooks(): self
-    {
-        if (has_action('init', [$this, 'init_hook'])) {
-            return $this;
-        }
-
-        add_action('init', [$this, 'init_hook']);
-        add_action('save_post', $this->save_post(...), 20);
+        add_action('init', [$this, 'init'], 1);
+        add_action('save_post', [$this, 'updateRecurrences'], 20);
         add_action('trashed_post', [$this, 'deleteRecurrences']);
         add_action('before_delete_post', [$this, 'deleteRecurrences']);
         add_filter('display_post_states', [$this, 'display_post_states'], 10, 2);
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
-
-        return $this;
     }
 
-    public function init_hook()
+    public function init()
     {
         if (!post_type_exists(PostTypes::EVENT)) {
             throw new InvalidArgumentException(sprintf('Post type \'%s\' doesn\'t exist', PostTypes::EVENT));
@@ -79,22 +67,25 @@ final class Recurrences
     /**
      * Runs on save post
      */
-    private function save_post(int $postID): void
+    public function updateRecurrences(int $postID): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
-        $this->createRecurrences($postID);
-        $this->createRecurrencesForTranslations($postID);
+        $dates = $this->getFurtherDates($postID);
+        $this->createRecurrences($postID, $dates);
+        $this->createRecurrencesForTranslations($postID, $dates);
     }
 
     /**
      * Create recurrences for Polylang translations of an event
+     *
+     * @param list<string> $dates
      */
-    private function createRecurrencesForTranslations(int $postID): void
+    private function createRecurrencesForTranslations(int $postID, array $dates): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -102,7 +93,9 @@ final class Recurrences
             return;
         }
 
-        $postLanguage = pll_get_post_language($postID);
+        if (!$postLanguage = pll_get_post_language($postID)) {
+            return;
+        }
 
         /** @var array<string, int> $postTranslations */
         $postTranslations = pll_get_post_translations($postID);
@@ -117,12 +110,12 @@ final class Recurrences
          *
          * @var array<int, array<string, int>> $recurrenceGroups
          */
-        $recurrenceGroups = collect($this->getRecurrences($postID))
+        $recurrenceGroups = collect(fpe()->getRecurrences($postID))
             ->map(fn($id) => [$postLanguage => $id])
             ->all();
 
         foreach ($postTranslations as $language => $id) {
-            foreach ($this->createRecurrences($id) as $index => $recurrenceID) {
+            foreach ($this->createRecurrences($id, $dates) as $index => $recurrenceID) {
                 $recurrenceGroups[$index][$language] = $recurrenceID;
             }
         }
@@ -138,11 +131,11 @@ final class Recurrences
      */
     public function deleteRecurrences(int $postID): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
-        $recurrences = $this->getRecurrences($postID);
+        $recurrences = fpe()->getRecurrences($postID);
 
         foreach ($recurrences as $recurrenceID) {
             wp_delete_post($recurrenceID, true);
@@ -150,61 +143,43 @@ final class Recurrences
     }
 
     /**
-     * Get all recurrences of an event
-     */
-    public function getRecurrences(int $postID)
-    {
-        if (!$this->core->isOriginalEvent($postID)) {
-            return [];
-        }
-
-        return get_posts([
-            // Fetch from any language
-            'lang' => '',
-            'post_type' => PostTypes::RECURRENCE,
-            'post_parent' => $postID,
-            'posts_per_page' => -1,
-            'post_status' => 'any',
-            'fields' => 'ids',
-            'suppress_filters' => true,
-        ]);
-    }
-
-    /**
      * Create recurrences from an original event, based on
      * the subfields of the ACF field 'further_dates'
      *
-     * @return list<int>
+     * @internal
+     *
+     * @param list<string> $dates
      */
-    public function createRecurrences(int $postID): array
+    private function createRecurrences(int $postID, array $dates): array
     {
-        /** Double-check if this is an original event */
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return [];
         }
 
         $this->deleteRecurrences($postID);
 
-        /** Only create clones for published events */
-        if (!$this->core->isVisiblePostStatus($postID)) {
-            return [];
-        }
-
-        $furtherDates = get_field($this->fieldKey, $postID, false) ?: [];
-
-        if (empty($furtherDates)) {
-            return [];
-        }
-
         /**
-         * Create a recurrence for each furtherDates entry
+         * Create a recurrence for each provided date
          */
-        return collect($furtherDates)
-            ->pluck($this->subFieldKey)
-            ->filter(fn(string $date) => !$this->core->isInThePast($date))
+        return collect($dates)
+            ->filter(fn(string $date) => !FPEvents::instance()->isInThePast($date))
             ->map(fn(string $dateTime) => $this->createRecurrence($postID, $dateTime))
             ->values()
             ->all();
+    }
+
+    /**
+     * Get further dates of an event
+     */
+    public function getFurtherDates(int|WP_Post $post): array
+    {
+        if (!$event = FPEvents::instance()->getEvent($post)) {
+            return [];
+        }
+
+        $furtherDates = get_field($this->fieldKey, $event, false) ?: [];
+
+        return array_column($furtherDates, $this->subFieldKey);
     }
 
     /**
@@ -212,15 +187,15 @@ final class Recurrences
      */
     private function createRecurrence(int $postID, string $dateTime): int
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             throw new RuntimeException(sprintf(__('Not an event: %d'), $postID));
         }
 
-        if (!$this->core->parseDateInFormat($dateTime)) {
+        if (!FPEvents::instance()->parseDateInFormat($dateTime)) {
             throw new Exception("Invalid date format: $dateTime");
         }
 
-        $originalMeta = $this->core->getFlatPostMeta($postID);
+        $originalMeta = FPEvents::instance()->getFlatPostMeta($postID);
         $originalPostArray = get_post($postID, ARRAY_A);
 
         $taxInput = collect(get_post_taxonomies($postID))
@@ -313,7 +288,7 @@ final class Recurrences
             return $valid;
         }
 
-        $originalDate = $_POST['acf'][EventFields::key(EventFields::DATE_AND_TIME)] ?? null;
+        $originalDate = $_POST['acf'][Utils::fieldKey(EventFields::DATE_AND_TIME)] ?? null;
 
         if ($value === $originalDate) {
             return "Each date must be different from the original event's date and time.";
@@ -337,25 +312,31 @@ final class Recurrences
      * ## OPTIONS
      *
      * <post-id>...
-     * : One or more event post IDs to create recurrences for.
+     * : One or more event post IDs to update recurrences for.
      *
      * ## EXAMPLES
      *
-     *     wp events recurrences create 423 857 920
+     *     wp events recurrences update 423 857 920
      *
      * @param list<string> $args
      *
      * @throws RuntimeException
      */
-    private function createRecurrencesCommand(array $args): void
+    private function updateRecurrencesCommand(array $args): void
     {
         $postIDs = collect($args);
 
-        if ($invalid = $postIDs->first(fn($id) => !$this->core->isOriginalEvent($id))) {
+        if ($invalid = $postIDs->first(fn($id) => !FPEvents::instance()->isOriginalEvent($id))) {
             WP_CLI::error("Not a valid event post ID: '{$invalid}'");
         }
 
-        /** The save_post hook does all we need */
-        $postIDs->each(fn($id) => $this->createRecurrences((int) $id));
+        foreach ($postIDs as $id) {
+            $this->updateRecurrences((int) $id);
+        }
+
+        WP_CLI::success(sprintf(
+            'Created recurrences for %d events',
+            count($args),
+        ));
     }
 }

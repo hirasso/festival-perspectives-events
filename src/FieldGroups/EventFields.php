@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
-use Hirasso\WP\FPEvents\Core;
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
+use Hirasso\WP\FPEvents\Singleton;
+use Hirasso\WP\FPEvents\Utils;
 
 /**
  * Global field names
  */
-final class EventFields extends Fields
+final class EventFields extends Singleton
 {
     public const DATE_AND_TIME = 'acfe_event_date_and_time';
     public const FURTHER_DATES = 'acfe_event_further_dates';
@@ -27,18 +29,32 @@ final class EventFields extends Fields
     private const GROUP_KEY = 'group_acfe_event_settings';
     private const GROUP_TITLE = 'Event Settings';
 
-    protected function addFields()
+    public function __construct()
     {
-        add_filter('acf/prepare_field/key=' . self::key(self::LOCATION_NAME), [__CLASS__, 'restrict_debug_field_visibilty']);
-        add_filter('acf/prepare_field/key=' . self::key(self::LOCATION_SORT_NAME), [__CLASS__, 'restrict_debug_field_visibilty']);
-        add_action('acf/render_field/key=' . self::key(self::LOCATION_ID), [__CLASS__, 'render_field_location_id']);
+        add_action('acf/init', [$this, 'init']);
+    }
+
+    public function init()
+    {
+        add_filter(
+            'acf/prepare_field/key=' . Utils::fieldKey(self::LOCATION_NAME),
+            [__CLASS__, 'restrict_debug_field_visibilty'],
+        );
+        add_filter(
+            'acf/prepare_field/key=' . Utils::fieldKey(self::LOCATION_SORT_NAME),
+            [__CLASS__, 'restrict_debug_field_visibilty'],
+        );
+        add_action(
+            'acf/render_field/key=' . Utils::fieldKey(self::LOCATION_ID),
+            [__CLASS__, 'render_field_location_id'],
+        );
 
         acf_add_local_field_group([
             'key' => self::GROUP_KEY,
             'title' => self::GROUP_TITLE,
             'fields' => [
                 [
-                    'key' => self::key(self::DATE_AND_TIME),
+                    'key' => Utils::fieldKey(self::DATE_AND_TIME),
                     'label' => 'Date and Time',
                     'name' => self::DATE_AND_TIME,
                     'type' => 'date_time_picker',
@@ -46,13 +62,13 @@ final class EventFields extends Fields
                     'wrapper' => [ 'width' => '50' ],
                     'relevanssi_exclude' => 0,
                     'display_format' => 'Y-m-d H:i',
-                    'return_format' => Core::MYSQL_DATE_TIME_FORMAT,
+                    'return_format' => FPEvents::MYSQL_DATE_TIME_FORMAT,
                     'first_day' => 1,
                     'translations' => 'sync',
                     'allow_in_bindings' => 1,
                 ],
                 [
-                    'key' => self::key(self::DURATION),
+                    'key' => Utils::fieldKey(self::DURATION),
                     'label' => 'Duration',
                     'name' => self::DURATION,
                     'aria-label' => '',
@@ -70,7 +86,7 @@ final class EventFields extends Fields
                     'allow_in_bindings' => 0,
                 ],
                 [
-                    'key' => self::key(self::FURTHER_DATES),
+                    'key' => Utils::fieldKey(self::FURTHER_DATES),
                     'label' => 'Further Dates',
                     'name' => self::FURTHER_DATES,
                     'type' => 'repeater',
@@ -79,23 +95,23 @@ final class EventFields extends Fields
                     'button_label' => 'Add Date',
                     'sub_fields' => [
                         [
-                            'key' => self::key(self::FURTHER_DATES_DATE_AND_TIME),
+                            'key' => Utils::fieldKey(self::FURTHER_DATES_DATE_AND_TIME),
                             'label' => 'Date and Time',
                             'name' => self::FURTHER_DATES_DATE_AND_TIME,
                             'type' => 'date_time_picker',
                             'required' => 1,
                             'relevanssi_exclude' => 1,
                             'display_format' => 'Y-m-d H:i',
-                            'return_format' => Core::MYSQL_DATE_TIME_FORMAT,
+                            'return_format' => FPEvents::MYSQL_DATE_TIME_FORMAT,
                             'first_day' => 1,
                             'translations' => 'sync',
                             'allow_in_bindings' => 1,
-                            'parent_repeater' => self::key(self::FURTHER_DATES),
+                            'parent_repeater' => Utils::fieldKey(self::FURTHER_DATES),
                         ],
                     ],
                 ],
                 [
-                    'key' => self::key(self::LOCATION_ID),
+                    'key' => Utils::fieldKey(self::LOCATION_ID),
                     'label' => 'Location',
                     'name' => self::LOCATION_ID,
                     'type' => 'post_object',
@@ -108,7 +124,7 @@ final class EventFields extends Fields
                     'ui' => 1,
                 ],
                 [
-                    'key' => self::key(self::LOCATION_NAME),
+                    'key' => Utils::fieldKey(self::LOCATION_NAME),
                     'label' => 'Location Name',
                     'name' => self::LOCATION_NAME,
                     'type' => 'text',
@@ -131,7 +147,7 @@ final class EventFields extends Fields
                     'translations' => 'ignore',
                 ],
                 [
-                    'key' => self::key(self::QUICK_INFOS),
+                    'key' => Utils::fieldKey(self::QUICK_INFOS),
                     'label' => 'Quick Infos',
                     'name' => self::QUICK_INFOS,
                     'type' => 'repeater',
@@ -140,19 +156,19 @@ final class EventFields extends Fields
                     'button_label' => 'Add Info',
                     'sub_fields' => [
                         [
-                            'key' => self::key(self::QUICK_INFOS_TEXT),
+                            'key' => Utils::fieldKey(self::QUICK_INFOS_TEXT),
                             'label' => 'Info',
                             'name' => self::QUICK_INFOS_TEXT,
                             'type' => 'text',
                             'required' => 1,
                             'relevanssi_exclude' => 0,
-                            'parent_repeater' => self::key(self::QUICK_INFOS),
+                            'parent_repeater' => Utils::fieldKey(self::QUICK_INFOS),
                             'translations' => 'copy_once',
                         ],
                     ],
                 ],
                 [
-                    'key' => self::key(self::EXTERNAL_LINK),
+                    'key' => Utils::fieldKey(self::EXTERNAL_LINK),
                     'label' => 'External Link',
                     'name' => self::EXTERNAL_LINK,
                     'type' => 'url',
@@ -161,7 +177,7 @@ final class EventFields extends Fields
                     'translations' => 'copy_once',
                 ],
                 [
-                    'key' => self::key(self::TICKET_LINK),
+                    'key' => Utils::fieldKey(self::TICKET_LINK),
                     'label' => 'Ticket Link',
                     'name' => self::TICKET_LINK,
                     'type' => 'url',

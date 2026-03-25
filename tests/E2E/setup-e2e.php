@@ -7,6 +7,8 @@
 
 namespace Hirasso\WP\FPEvents\Tests\E2E;
 
+use Hirasso\WP\FPEvents\PostTypes;
+
 /** Exit if accessed directly */
 if (!\defined('ABSPATH')) {
     exit;
@@ -30,10 +32,27 @@ function getCurrentEnv(): ?string
         : null;
 }
 
+/** Overwrite pll post types */
+add_filter('pll_get_post_types', PostTypes::all(...));
+
 add_action('after_setup_theme', function () {
-    $whoops = new \Whoops\Run();
-    $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
-    $whoops->register();
+
+    PLL()->model->add_language([
+        'name'       => 'Deutsch',
+        'slug'       => 'de',
+        'locale'     => 'de_DE',
+        'rtl'        => false,
+        'term_group' => 0,
+    ]);
+
+    PLL()->model->add_language([
+        'name'       => 'Français',
+        'slug'       => 'fr',
+        'locale'     => 'fr_FR',
+        'rtl'        => false,
+        'term_group' => 1,
+        'flag_code'  => 'fr',
+    ]);
 
     new Setup();
 });

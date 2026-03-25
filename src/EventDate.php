@@ -41,7 +41,7 @@ final readonly class EventDate
 
     public function toMySQLString(): string
     {
-        return $this->date->format(Core::MYSQL_DATE_TIME_FORMAT);
+        return $this->date->format(FPEvents::MYSQL_DATE_TIME_FORMAT);
     }
 
     public function __toString()

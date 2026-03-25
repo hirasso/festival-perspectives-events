@@ -9,7 +9,7 @@
 ### Patch Changes
 
 - ea8a7fd: New wp-cli command: `wp events recurrences create <post-id>...`
-- da5c258: Add new API method `fp_events()->core->isEventInThePast()`
+- da5c258: Add new API method `fp_events()->isEventInThePast()`
 
 ## 1.0.1
 

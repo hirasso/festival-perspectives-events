@@ -9,34 +9,22 @@ use WP_Term;
 /**
  * Polylang integration for FPEvents
  */
-final class PolylangIntegration
+final class PolylangIntegration extends Singleton
 {
-    private static ?self $instance = null;
-
-    private function __construct()
+    protected function __construct()
     {
         $this->registerStrings();
+        $this->addHooks();
     }
 
-    public static function init()
+    private function addHooks(): void
     {
-        self::$instance ??= new self();
-        return self::$instance;
-    }
-
-    public function addHooks(): self
-    {
-        if (has_filter('term_link', [$this, 'event_filter_term_link'], 11)) {
-            return $this;
-        }
         if (!$this->isPolylangActive()) {
-            return $this;
+            return;
         }
 
         add_filter('term_link', [$this, 'event_filter_term_link'], 11, 2);
         add_filter('gettext', [$this, 'translate_gettext'], 10, 3);
-
-        return $this;
     }
 
     private function registerStrings(): void
@@ -85,7 +73,7 @@ final class PolylangIntegration
             return $link;
         }
 
-        if ($term->taxonomy !== Core::FILTER_TAXONOMY) {
+        if ($term->taxonomy !== FPEvents::FILTER_TAXONOMY) {
             return $link;
         }
 

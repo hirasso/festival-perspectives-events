@@ -12,40 +12,27 @@ use WP_Post;
 /**
  * Automatically attach locations to events
  */
-final class Locations
+final class Locations extends Singleton
 {
-    private static ?self $instance = null;
-
-    private function __construct(private Core $core) {}
-
-    public static function init(Core $core)
+    protected function __construct()
     {
-        self::$instance ??= new self($core);
-        return self::$instance;
+        parent::__construct();
+        $this->addHooks();
     }
 
-    /**
-     * Add WordPress hooks
-     */
-    public function addHooks(): self
+    private function addHooks(): void
     {
-        if (has_action('init', [$this, 'add_post_type'])) {
-            return $this;
-        }
-
-        add_action('init', [$this, 'add_post_type']);
+        add_action('init', [$this, 'add_post_type'], 1);
         add_filter('update_post_meta', [$this, 'update_post_meta_hook'], 10, 4);
         add_action("wp_after_insert_post", [$this, 'wp_after_insert_post'], 20, 2);
         add_filter('map_meta_cap', [$this, 'prevent_location_deletion'], 10, 4);
         add_filter('acf/pre_update_value', [$this, 'acf_pre_update_value'], 10, 4);
-
-        return $this;
     }
 
 
     public function add_post_type()
     {
-        $this->core->addPostType(
+        FPEvents::instance()->addPostType(
             name: PostTypes::LOCATION,
             slug: 'location',
             args: [
@@ -69,7 +56,7 @@ final class Locations
      */
     public function update_post_meta_hook(mixed $x, int $id, string $key, mixed $value): mixed
     {
-        if ($this->core->isEvent($id) && $key === EventFields::LOCATION_ID) {
+        if (FPEvents::instance()->isEvent($id) && $key === EventFields::LOCATION_ID) {
             $this->updateEvent($id, (int) $value);
         }
 
@@ -81,14 +68,14 @@ final class Locations
      */
     private function updateEvent(int $eventID, int $locationID): void
     {
-        if (!$this->core->isEvent($eventID)) {
+        if (!FPEvents::instance()->isEvent($eventID)) {
             throw new InvalidArgumentException("Not an event: $eventID");
         }
 
         $name = "";
         $sortName = "";
 
-        if ($this->core->isLocation($locationID)) {
+        if (FPEvents::instance()->isLocation($locationID)) {
             $name = get_the_title($locationID);
             $sortName = get_post_meta($locationID, LocationFields::SORT_NAME, true) ?: $name;
         }
@@ -103,17 +90,17 @@ final class Locations
     public function wp_after_insert_post(int $locationID, WP_Post $post): void
     {
         if (
-            !$this->core->isLocation($post)
-            || !$this->core->isVisiblePostStatus($locationID)
+            !FPEvents::instance()->isLocation($post)
+            || !FPEvents::instance()->isVisiblePostStatus($locationID)
         ) {
             return;
         }
 
-        remove_action("wp_after_insert_post", [$this, 'wp_after_insert_post'], 20);
+        remove_action('wp_after_insert_post', [$this, 'wp_after_insert_post'], 20);
 
         do_action('acfe/save_location', $locationID, $post);
 
-        foreach ($this->core->getEventsAtLocation($locationID) as $eventID) {
+        foreach (FPEvents::instance()->getEventsAtLocation($locationID) as $eventID) {
             $this->updateEvent($eventID, $locationID);
         }
 
@@ -131,7 +118,7 @@ final class Locations
 
         $postID = (int) $args[0];
 
-        return count($this->core->getEventsAtLocation($postID, 1))
+        return count(FPEvents::instance()->getEventsAtLocation($postID, 1))
             ? ['do_not_allow']
             : $caps;
     }

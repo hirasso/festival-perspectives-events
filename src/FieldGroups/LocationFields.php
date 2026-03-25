@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
+use Hirasso\WP\FPEvents\Singleton;
+use Hirasso\WP\FPEvents\Utils;
 use WP_Post;
 
 /**
  * Global field names
  */
-final class LocationFields extends Fields
+final class LocationFields extends Singleton
 {
     public const SORT_NAME = 'acfe_location_sort_name';
     public const ADDRESS = 'acfe_location_address';
@@ -23,13 +26,18 @@ final class LocationFields extends Fields
     public const GROUP_KEY = 'group_acfe_location_settings';
     public const GROUP_TITLE = 'Location Settings';
 
-    protected function addFields()
+    public function __construct()
     {
-        add_filter('acf/prepare_field/key=' . self::key(self::DEBUG_ATTACHED_EVENTS), $this->prepare_field_debug_attached_events(...));
+        add_action('acf/init', [$this, 'init']);
+    }
+
+    public function init()
+    {
+        add_filter('acf/prepare_field/key=' . Utils::fieldKey(self::DEBUG_ATTACHED_EVENTS), $this->prepare_field_debug_attached_events(...));
 
         $fields = [
             [
-                'key' => self::key(self::SORT_NAME),
+                'key' => Utils::fieldKey(self::SORT_NAME),
                 'label' => 'Sort Name',
                 'name' => self::SORT_NAME,
                 'type' => 'text',
@@ -37,7 +45,7 @@ final class LocationFields extends Fields
                 'translations' => 'copy_once',
             ],
             [
-                'key' => self::key(self::ADDRESS),
+                'key' => Utils::fieldKey(self::ADDRESS),
                 'label' => 'Address',
                 'name' => self::ADDRESS,
                 'type' => 'textarea',
@@ -47,14 +55,14 @@ final class LocationFields extends Fields
                 'new_lines' => 'br',
             ],
             [
-                'key' => self::key(self::AREA),
+                'key' => Utils::fieldKey(self::AREA),
                 'label' => 'Area',
                 'name' => self::AREA,
                 'type' => 'text',
                 'translations' => 'copy_once',
             ],
             [
-                'key' => self::key(self::TEL),
+                'key' => Utils::fieldKey(self::TEL),
                 'label' => 'Tel',
                 'name' => self::TEL,
                 'type' => 'text',
@@ -62,7 +70,7 @@ final class LocationFields extends Fields
                 'wrapper' => ['width' => 50],
             ],
             [
-                'key' => self::key(self::EMAIL),
+                'key' => Utils::fieldKey(self::EMAIL),
                 'label' => 'Email',
                 'name' => self::EMAIL,
                 'type' => 'email',
@@ -70,7 +78,7 @@ final class LocationFields extends Fields
                 'wrapper' => ['width' => 50],
             ],
             [
-                'key' => self::key(self::WEBSITE),
+                'key' => Utils::fieldKey(self::WEBSITE),
                 'label' => 'Website',
                 'name' => self::WEBSITE,
                 'aria-label' => '',
@@ -79,7 +87,7 @@ final class LocationFields extends Fields
                 'wrapper' => ['width' => 50],
             ],
             [
-                'key' => self::key(self::MAPS_URL),
+                'key' => Utils::fieldKey(self::MAPS_URL),
                 'label' => 'Maps URL',
                 'name' => self::MAPS_URL,
                 'type' => 'url',
@@ -88,7 +96,7 @@ final class LocationFields extends Fields
                 'wrapper' => ['width' => 50],
             ],
             [
-                'key' => self::key(self::DEBUG_ATTACHED_EVENTS),
+                'key' => Utils::fieldKey(self::DEBUG_ATTACHED_EVENTS),
                 'label' => 'Attached Events',
                 'name' => self::DEBUG_ATTACHED_EVENTS,
                 'type' => 'message',
@@ -131,7 +139,7 @@ final class LocationFields extends Fields
         }
 
         /** @var WP_Post[] $attachedEvents */
-        $attachedEvents = $this->core->getEventsAtLocation(
+        $attachedEvents = FPEvents::instance()->getEventsAtLocation(
             get_post(),
             amount: -1,
             ids: false,
