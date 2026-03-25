@@ -34,7 +34,7 @@ final class EventFields extends Singleton
         add_action('acf/init', [$this, 'init']);
     }
 
-    protected function init()
+    public function init()
     {
         add_filter(
             'acf/prepare_field/key=' . Utils::fieldKey(self::LOCATION_NAME),

@@ -1112,10 +1112,8 @@ final class FPEvents extends Singleton
      * Set further dates for an event manually
      *
      * @param list<string> $dates
-     *
-     * @return list<string> the mysql-formatted dates
      */
-    public function setFurtherDates(int|WP_Post $event, array $dates): array
+    public function setFurtherDates(int|WP_Post $event, array $dates): void
     {
         if (!$event = $this->getEvent($event)) {
             throw new Exception(sprintf('Please provide an event'));
@@ -1123,32 +1121,19 @@ final class FPEvents extends Singleton
 
         $subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        $rows = $this->getFurtherDatesRows($dates);
-
-        update_field(
-            Utils::fieldKey(EventFields::FURTHER_DATES),
-            $rows,
-            $event,
-        );
-
-        return collect($rows)
-            ->pluck($subFieldKey)
-            ->values()
-            ->all();
-    }
-
-
-    public function getFurtherDatesRows(array $dates): array
-    {
-        $subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
-
-        return collect($dates)
+        $rows = collect($dates)
             ->values()
             ->map(fn($date) => \strtotime($date))
             ->filter(fn($timestamp) => !!$timestamp)
             ->sort()
             ->map(fn($timestamp) => [$subFieldKey => \date(FPEvents::MYSQL_DATE_TIME_FORMAT, $timestamp)])
             ->all();
+
+        update_field(
+            Utils::fieldKey(EventFields::FURTHER_DATES),
+            $rows,
+            $event,
+        );
     }
 
     /**

@@ -31,7 +31,7 @@ final class LocationFields extends Singleton
         add_action('acf/init', [$this, 'init']);
     }
 
-    protected function init()
+    public function init()
     {
         add_filter('acf/prepare_field/key=' . Utils::fieldKey(self::DEBUG_ATTACHED_EVENTS), $this->prepare_field_debug_attached_events(...));
 
