@@ -27,9 +27,7 @@ final class Recurrences extends Singleton
         $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
         $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        if (Utils::instance()->isWpCli()) {
-            WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
-        }
+        Utils::instance()->addWPCLICommand('recurrences create', $this->createRecurrencesCommand(...));
 
         $this->addHooks();
     }

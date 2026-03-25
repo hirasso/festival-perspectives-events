@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hirasso\WP\FPEvents;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use WP_CLI;
 use WP_Query;
 use wpdb;
 
@@ -129,5 +130,16 @@ final class Utils extends Singleton
     public function isFilledString(mixed $value): bool
     {
         return is_string($value) && trim($value) !== '';
+    }
+
+    /**
+     * Add a command, prefix it with "events"
+     */
+    public function addWPCLICommand(string $name, callable $callable, array $args = [])
+    {
+        if ($this->isWpCli()) {
+            WP_CLI::add_command("events $name", $callable, $args);
+        }
+
     }
 }

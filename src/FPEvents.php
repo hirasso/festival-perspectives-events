@@ -12,7 +12,6 @@ use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
 use InvalidArgumentException;
 use RuntimeException;
-use WP_CLI;
 use WP_Post;
 use WP_Query;
 use WP_Term;
@@ -30,14 +29,15 @@ final class FPEvents extends Singleton
 
     protected function __construct()
     {
-        $this->recurrences = Recurrences::instance();
         $this->utils = Utils::instance();
+        $this->addHooks();
+
+        $this->recurrences = Recurrences::instance();
+
         Locations::instance();
         EventFields::instance();
         LocationFields::instance();
         PolylangIntegration::instance();
-
-        $this->addHooks();
     }
 
     private function addHooks(): void
@@ -90,11 +90,9 @@ final class FPEvents extends Singleton
 
         add_action($hook, $this->runArchiver(...));
 
-        if ($this->utils->isWpCli()) {
-            WP_CLI::add_command("fp-events archiver run", fn() => do_action($hook), [
-                'shortdesc' => 'Run the archiver.',
-            ]);
-        }
+        Utils::instance()->addWPCLICommand('archiver run', fn() => do_action($hook), [
+            'shortdesc' => 'Run the archiver.',
+        ]);
 
         if (!wp_next_scheduled($hook)) {
             wp_schedule_event(
@@ -233,7 +231,7 @@ final class FPEvents extends Singleton
         }
 
         return collect([$event->ID])
-            ->merge(fp_events()->recurrences->getRecurrences($event->ID))
+            ->merge($this->recurrences->getRecurrences($event->ID))
             ->map(fn($_, $postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
             ->filter($this->utils->isFilledString(...))
             ->sort()
