@@ -94,8 +94,6 @@ class RecurrencesTest extends TestCase
         ];
         [$event, $eventFR] = $this->createEvent($furtherDates);
 
-        do_action('save_post', $event->ID, $event);
-
         $recurrences = fp_events()->recurrences->getRecurrences($event->ID);
         $this->assertSame(count($recurrences), 3);
 
@@ -121,8 +119,6 @@ class RecurrencesTest extends TestCase
             '+60 days 18:00:00',
             '+60 days 19:00:00',
         ]);
-
-        do_action('save_post', $event->ID, $event);
 
         $recurrences = fp_events()->recurrences->getRecurrences($event->ID);
 

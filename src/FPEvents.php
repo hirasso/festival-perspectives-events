@@ -1134,6 +1134,8 @@ final class FPEvents extends Singleton
             $rows,
             $event,
         );
+
+        $this->recurrences->createRecurrences($event->ID);
     }
 
     /**
