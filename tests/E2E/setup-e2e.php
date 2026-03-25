@@ -23,8 +23,8 @@ require_once dirname(__DIR__) . '/festival-perspectives-events/vendor/autoload.p
  */
 function getCurrentEnv(): ?string
 {
-    $env = (\defined('ACFE_WP_ENV'))
-        ? ACFE_WP_ENV
+    $env = (\defined('ACFE_ENV'))
+        ? ACFE_ENV
         : null;
 
     return \in_array($env, ['development', 'test'], true)

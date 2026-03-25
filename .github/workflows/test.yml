@@ -1,17 +1,10 @@
 name: CI
 
-on:
-  push:
-    branches:
-      main
-  pull_request:
+on: [push, pull_request, workflow_dispatch]
 
-permissions:
-  contents: write # for merging the PR and creating the release
-  pull-requests: write # for creating the version PR
-
+# Cancels all previous workflow runs for pull requests that have not completed
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -33,21 +26,21 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
 
-      - name: Start wp-env-test container
+      - name: Run PHPStan Tests
+        run: composer analyse
+
+      - name: Start env container
         env:
           WP_ENV_PHP_VERSION: ${{ matrix.php }}
           # WP_ENV_CORE: 'WordPress/WordPress'
         run: |
-          pnpm run wp-env-test start
-          pnpm run wp-env-test:cli php --version
-          pnpm run wp-env-test:cli wp core version
-
-      - name: Run PHPStan Tests
-        run: composer analyse
+          pnpm run env start
+          pnpm run env run cli php --version
+          pnpm run env run cli wp core version
 
       - name: Run Integration Tests
         run: |
-          pnpm run test:integration
+          pnpm run composer test
 
   e2eTests:
     name: E2E Tests
@@ -82,11 +75,11 @@ jobs:
         shell: bash
         run: npx playwright install-deps
 
-      - name: Start wp-env-test container
+      - name: Start env container
         run: |
-          pnpm run wp-env-test start
-          pnpm run wp-env-test:cli php --version
-          pnpm run wp-env-test:cli wp core version
+          pnpm run env start
+          pnpm run env run cli php --version
+          pnpm run env run cli wp core version
 
       - name: Run E2E Tests
         run: |

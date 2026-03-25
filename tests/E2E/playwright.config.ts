@@ -15,14 +15,14 @@ const dd = function (...args: any[]) {
 };
 
 function getWPEnvUrl() {
-  const output = execSync("pnpm run wp-env-test status --json", {
+  const output = execSync("pnpm run env status --json", {
     encoding: "utf-8",
   });
 
   const json = output.split("\n").find((line) => line.trim().startsWith("{"));
 
   if (!json) {
-    throw new Error('`pnpm run wp-env-test status --json` did not produce valid json');
+    throw new Error('`pnpm run env status --json` did not produce valid json');
   }
 
   return JSON.parse(json).urls.development;
@@ -112,7 +112,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "pnpm run wp-env-test start",
+    command: "pnpm run env start",
     url: baseURL.href,
     timeout: 120_000,
     reuseExistingServer: true,
