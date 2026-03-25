@@ -18,6 +18,10 @@ jobs:
       matrix:
         php: [8.2, 8.3]
 
+    env:
+      WP_ENV_PHP_VERSION: ${{ matrix.php }}
+      # WP_ENV_CORE: 'WordPress/WordPress'
+
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -29,14 +33,20 @@ jobs:
       - name: Run PHPStan Tests
         run: composer analyse
 
-      - name: Start env container
-        env:
-          WP_ENV_PHP_VERSION: ${{ matrix.php }}
-          # WP_ENV_CORE: 'WordPress/WordPress'
+      - name: Start the Docker Testing Environment
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: |
+            pnpm run env start
+            pnpm run env run cli php --version
+            pnpm run env run cli wp core version
+
+      - name: Install Composer in the Container
         run: |
-          pnpm run env start
-          pnpm run env run cli php --version
-          pnpm run env run cli wp core version
+          rm composer.lock || true # We need to install fresh.
+          npm run composer install
 
       - name: Run Integration Tests
         run: |
