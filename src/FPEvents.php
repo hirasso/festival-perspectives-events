@@ -20,19 +20,22 @@ use WP_Term;
  */
 final class FPEvents extends Singleton
 {
-    public Recurrences $recurrences;
-    public Utils $utils;
+    private Utils $utils;
 
     public const MYSQL_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     public const FILTER_TAXONOMY = 'acfe-event_filter';
 
     protected function __construct()
     {
+        add_action('after_setup_theme', $this->load(...));
+    }
+
+    private function load(): void
+    {
         $this->utils = Utils::instance();
         $this->addHooks();
 
-        $this->recurrences = Recurrences::instance();
-
+        Recurrences::instance();
         Locations::instance();
         EventFields::instance();
         LocationFields::instance();
@@ -1134,7 +1137,7 @@ final class FPEvents extends Singleton
             $event,
         );
 
-        $this->recurrences->updateRecurrences($event->ID);
+        Recurrences::instance()->updateRecurrences($event->ID);
     }
 
     /**
