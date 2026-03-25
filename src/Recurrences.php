@@ -93,7 +93,9 @@ final class Recurrences extends Singleton
             return;
         }
 
-        $postLanguage = pll_get_post_language($postID);
+        if (!$postLanguage = pll_get_post_language($postID)) {
+            return;
+        }
 
         /** @var array<string, int> $postTranslations */
         $postTranslations = pll_get_post_translations($postID);
