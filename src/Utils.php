@@ -122,4 +122,12 @@ final class Utils extends Singleton
     {
         return defined('WP_CLI') && WP_CLI; // @phpstan-ignore booleanAnd.rightAlwaysTrue
     }
+
+    /**
+     * Check if a string is filled
+     */
+    public function isFilledString(mixed $value): bool
+    {
+        return is_string($value) && trim($value) !== '';
+    }
 }

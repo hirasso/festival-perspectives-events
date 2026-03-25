@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
 use Exception;
-use Hirasso\WP\FPEvents\Core;
 
 /**
  * Global field names
  */
 abstract class Fields extends \Hirasso\WP\FPEvents\Singleton
 {
-    protected Core $core;
-
     protected function __construct()
     {
-        $this->core = Core::instance();
         $this->addHooks();
     }
 

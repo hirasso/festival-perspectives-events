@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\Tests\Integration;
 
-use Hirasso\WP\FPEvents\Core;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FieldGroups\Fields;
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
@@ -38,7 +38,7 @@ class RecurrencesTest extends TestCase
             'post_status' => 'publish',
             'post_type' => PostTypes::EVENT,
             'meta_input' => [
-                EventFields::DATE_AND_TIME => \date(Core::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 10:00')),
+                EventFields::DATE_AND_TIME => \date(FPEvents::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 10:00')),
                 EventFields::LOCATION_ID => $location->ID,
             ],
         ], $eventArgs);
@@ -100,7 +100,7 @@ class RecurrencesTest extends TestCase
     {
         $args = [
             'meta_input' => [
-                Fields::key(EventFields::FURTHER_DATES) => fp_events()->core->getFurtherDatesRows([
+                Fields::key(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
                     '+30 days 19:00:00',
                     '+60 days 18:00:00',
                     '+60 days 19:00:00',
@@ -109,7 +109,7 @@ class RecurrencesTest extends TestCase
         ];
         [$event, $eventFR] = $this->createEvent($args);
 
-        $furtherDates = fp_events()->core->setFurtherDates($event, [
+        $furtherDates = fp_events()->setFurtherDates($event, [
             '+30 days 19:00:00',
             '+60 days 18:00:00',
             '+60 days 19:00:00',
@@ -137,7 +137,7 @@ class RecurrencesTest extends TestCase
     {
         $args = [
             'meta_input' => [
-                Fields::key(EventFields::FURTHER_DATES) => fp_events()->core->getFurtherDatesRows([
+                Fields::key(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
                     'yesterday',
                     '+60 days 18:00:00',
                     '+60 days 19:00:00',

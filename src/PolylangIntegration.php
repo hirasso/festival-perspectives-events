@@ -73,7 +73,7 @@ final class PolylangIntegration extends Singleton
             return $link;
         }
 
-        if ($term->taxonomy !== Core::FILTER_TAXONOMY) {
+        if ($term->taxonomy !== FPEvents::FILTER_TAXONOMY) {
             return $link;
         }
 

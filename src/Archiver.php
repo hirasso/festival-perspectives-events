@@ -15,7 +15,6 @@ use Psr\Log\LoggerInterface;
 final class Archiver
 {
     public function __construct(
-        private Core $core,
         private LoggerInterface $logger,
     ) {}
 
@@ -52,7 +51,7 @@ final class Archiver
      */
     private function deleteAllExpiredRecurrences(): int
     {
-        $expiredRecurrences = $this->core->getExpiredEvents(PostTypes::RECURRENCE);
+        $expiredRecurrences = fp_events()->getExpiredEvents(PostTypes::RECURRENCE);
 
         foreach ($expiredRecurrences as $postID) {
             wp_delete_post($postID, true);

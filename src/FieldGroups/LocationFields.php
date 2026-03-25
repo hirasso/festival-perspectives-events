@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
 
@@ -131,7 +132,7 @@ final class LocationFields extends Fields
         }
 
         /** @var WP_Post[] $attachedEvents */
-        $attachedEvents = $this->core->getEventsAtLocation(
+        $attachedEvents = FPEvents::instance()->getEventsAtLocation(
             get_post(),
             amount: -1,
             ids: false,

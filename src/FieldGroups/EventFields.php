@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\FieldGroups;
 
-use Hirasso\WP\FPEvents\Core;
+use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
 
 /**
@@ -46,7 +46,7 @@ final class EventFields extends Fields
                     'wrapper' => [ 'width' => '50' ],
                     'relevanssi_exclude' => 0,
                     'display_format' => 'Y-m-d H:i',
-                    'return_format' => Core::MYSQL_DATE_TIME_FORMAT,
+                    'return_format' => FPEvents::MYSQL_DATE_TIME_FORMAT,
                     'first_day' => 1,
                     'translations' => 'sync',
                     'allow_in_bindings' => 1,
@@ -86,7 +86,7 @@ final class EventFields extends Fields
                             'required' => 1,
                             'relevanssi_exclude' => 1,
                             'display_format' => 'Y-m-d H:i',
-                            'return_format' => Core::MYSQL_DATE_TIME_FORMAT,
+                            'return_format' => FPEvents::MYSQL_DATE_TIME_FORMAT,
                             'first_day' => 1,
                             'translations' => 'sync',
                             'allow_in_bindings' => 1,

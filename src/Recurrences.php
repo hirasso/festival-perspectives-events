@@ -19,15 +19,15 @@ final class Recurrences extends Singleton
 {
     private string $fieldKey;
     private string $subFieldKey;
-    private Core $core;
 
     protected function __construct()
     {
-        $this->core = Core::instance();
+        parent::__construct();
+
         $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
         $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        if ($this->core->utils->isWpCli()) {
+        if (Utils::instance()->isWpCli()) {
             WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
         }
 
@@ -72,7 +72,7 @@ final class Recurrences extends Singleton
      */
     public function save_post(int $postID): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -85,7 +85,7 @@ final class Recurrences extends Singleton
      */
     private function createRecurrencesForTranslations(int $postID): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -131,7 +131,7 @@ final class Recurrences extends Singleton
      */
     public function deleteRecurrences(int $postID): void
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return;
         }
 
@@ -147,7 +147,7 @@ final class Recurrences extends Singleton
      */
     public function getRecurrences(int $postID)
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return [];
         }
 
@@ -172,14 +172,14 @@ final class Recurrences extends Singleton
     public function createRecurrences(int $postID): array
     {
         /** Double-check if this is an original event */
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             return [];
         }
 
         $this->deleteRecurrences($postID);
 
         /** Only create clones for published events */
-        if (!$this->core->isVisiblePostStatus($postID)) {
+        if (!FPEvents::instance()->isVisiblePostStatus($postID)) {
             return [];
         }
 
@@ -194,7 +194,7 @@ final class Recurrences extends Singleton
          */
         return collect($furtherDates)
             ->pluck($this->subFieldKey)
-            ->filter(fn(string $date) => !$this->core->isInThePast($date))
+            ->filter(fn(string $date) => !FPEvents::instance()->isInThePast($date))
             ->map(fn(string $dateTime) => $this->createRecurrence($postID, $dateTime))
             ->values()
             ->all();
@@ -205,15 +205,15 @@ final class Recurrences extends Singleton
      */
     private function createRecurrence(int $postID, string $dateTime): int
     {
-        if (!$this->core->isOriginalEvent($postID)) {
+        if (!FPEvents::instance()->isOriginalEvent($postID)) {
             throw new RuntimeException(sprintf(__('Not an event: %d'), $postID));
         }
 
-        if (!$this->core->parseDateInFormat($dateTime)) {
+        if (!FPEvents::instance()->parseDateInFormat($dateTime)) {
             throw new Exception("Invalid date format: $dateTime");
         }
 
-        $originalMeta = $this->core->getFlatPostMeta($postID);
+        $originalMeta = FPEvents::instance()->getFlatPostMeta($postID);
         $originalPostArray = get_post($postID, ARRAY_A);
 
         $taxInput = collect(get_post_taxonomies($postID))
@@ -344,7 +344,7 @@ final class Recurrences extends Singleton
     {
         $postIDs = collect($args);
 
-        if ($invalid = $postIDs->first(fn($id) => !$this->core->isOriginalEvent($id))) {
+        if ($invalid = $postIDs->first(fn($id) => !FPEvents::instance()->isOriginalEvent($id))) {
             WP_CLI::error("Not a valid event post ID: '{$invalid}'");
         }
 

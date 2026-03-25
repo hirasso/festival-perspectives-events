@@ -62,7 +62,7 @@ You can hook into the action to perform your custom archiving jobs:
 
 ```php
 add_action('fp_events_run_archiver', function() {
-  foreach (fp_events()->core->getExpiredEvents() as $postID) {
+  foreach (fp_events()->getExpiredEvents() as $postID) {
       /** for example: remove filters from expired events */
       removeEventFilters($postID);
   }
