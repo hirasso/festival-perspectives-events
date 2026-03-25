@@ -150,4 +150,24 @@ final class Utils extends Singleton
     {
         return "field_$fieldName";
     }
+
+    /**
+     * Add words to a string if that string doesn't already contain them
+     */
+    public function addWords(string $str, ?string $words = ''): string
+    {
+        $words = trim($words);
+
+        if (empty($words)) {
+            return $str;
+        }
+
+        foreach (explode(' ', $words) as $word) {
+            if (!str_contains(" $str ", " $word ")) {
+                $str = "$str $word";
+            }
+        }
+
+        return $str;
+    }
 }

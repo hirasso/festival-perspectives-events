@@ -20,7 +20,7 @@ use WP_Term;
  */
 final class FPEvents extends Singleton
 {
-    private Utils $utils;
+    public Utils $utils;
 
     public const MYSQL_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     public const FILTER_TAXONOMY = 'acfe-event_filter';
@@ -315,38 +315,7 @@ final class FPEvents extends Singleton
             ->filter()
             ->join(' ');
 
-        return $this->addWords($title, $locationTokens);
-    }
-
-    /**
-     * Add words to a string if that string doesn't already contain them
-     */
-    private function addWords(string $str, ?string $words = ''): string
-    {
-        $words = trim($words);
-
-        if (empty($words)) {
-            return $str;
-        }
-
-        foreach (explode(' ', $words) as $word) {
-            if (!str_contains(" $str ", " $word ")) {
-                $str = "$str $word";
-            }
-        }
-
-        return $str;
-    }
-
-    /**
-     * Get a date for display purposes
-     */
-    public function getDateForDisplay(string $dateString, bool $includeTime = false): string
-    {
-        $dateFormat = get_option('date_format');
-        $timeFormat = get_option('time_format');
-        $format = $includeTime ? "$dateFormat $timeFormat" : $dateFormat;
-        return date_i18n($format, strtotime($dateString));
+        return $this->utils->addWords($title, $locationTokens);
     }
 
     /**
