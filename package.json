@@ -14,9 +14,10 @@
     "env": "wp-env",
     "launch": "open $(wp-env status --json | jq -r '.urls.development')",
     "composer": "wp-env run cli --env-cwd=wp-content/plugins/festival-perspectives-events composer",
+    "wp": "wp-env run cli wp",
     "test:unit": "pnpm run composer test",
     "test:unit:watch": "pnpm run composer test:watch",
-    "test:e2e": "pnpm exec playwright test --config ./tests/E2E/playwright.config.ts",
+    "test:e2e": "pnpm run wp plugin activate --all && pnpm exec playwright test --config ./tests/E2E/playwright.config.ts",
     "test:e2e:dev": "PLAYWRIGHT_ENV=dev pnpm run test:e2e --ui",
     "test:e2e:install": "pnpm exec playwright install --with-deps"
   },

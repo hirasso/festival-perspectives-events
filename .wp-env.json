@@ -3,6 +3,7 @@
   "phpVersion": "8.3",
   "testsEnvironment": false,
   "port": 2233,
+  "phpmyadmin": true,
   "core": "./vendor/.wp/core",
   "themes": ["./vendor/.wp/themes/twentytwentyfive"],
   "plugins": [
