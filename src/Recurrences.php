@@ -9,7 +9,6 @@ use WP_Post;
 use InvalidArgumentException;
 use RuntimeException;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use WP_CLI;
 
 /**
@@ -24,8 +23,8 @@ final class Recurrences extends Singleton
     {
         parent::__construct();
 
-        $this->fieldKey = Fields::key(EventFields::FURTHER_DATES);
-        $this->subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+        $this->fieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
+        $this->subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
         Utils::instance()->addWPCLICommand('recurrences create', $this->createRecurrencesCommand(...));
 
@@ -34,7 +33,7 @@ final class Recurrences extends Singleton
 
     private function addHooks(): void
     {
-        add_action('init', [$this, 'init_hook']);
+        add_action('init', [$this, 'init_hook'], 1);
         add_action('save_post', [$this, 'save_post'], 20);
         add_action('trashed_post', [$this, 'deleteRecurrences']);
         add_action('before_delete_post', [$this, 'deleteRecurrences']);
@@ -304,7 +303,7 @@ final class Recurrences extends Singleton
             return $valid;
         }
 
-        $originalDate = $_POST['acf'][EventFields::key(EventFields::DATE_AND_TIME)] ?? null;
+        $originalDate = $_POST['acf'][Utils::fieldKey(EventFields::DATE_AND_TIME)] ?? null;
 
         if ($value === $originalDate) {
             return "Each date must be different from the original event's date and time.";

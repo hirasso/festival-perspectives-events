@@ -44,7 +44,7 @@ final class FPEvents extends Singleton
     {
         // add_action('wp', fn() => dump($this->utils->getFormattedSql()));
 
-        add_action('init', [$this, 'init_hook']);
+        add_action('init', [$this, 'init_hook'], 1);
         add_filter('relevanssi_post_title_before_tokenize', [$this, 'relevanssi_post_title_before_tokenize'], 10, 2);
         add_filter('pll_get_post_types', [$this, 'pll_get_post_types'], 10, 2);
         add_filter('query_vars', [$this, 'query_vars']);
@@ -1121,12 +1121,12 @@ final class FPEvents extends Singleton
             throw new Exception(sprintf('Please provide an event'));
         }
 
-        $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+        $subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
         $rows = $this->getFurtherDatesRows($dates);
 
         update_field(
-            Fields::key(EventFields::FURTHER_DATES),
+            Utils::fieldKey(EventFields::FURTHER_DATES),
             $rows,
             $event,
         );
@@ -1140,7 +1140,7 @@ final class FPEvents extends Singleton
 
     public function getFurtherDatesRows(array $dates): array
     {
-        $subFieldKey = Fields::key(EventFields::FURTHER_DATES_DATE_AND_TIME);
+        $subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
         return collect($dates)
             ->values()

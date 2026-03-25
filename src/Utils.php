@@ -142,4 +142,12 @@ final class Utils extends Singleton
         }
 
     }
+
+    /**
+     * Returns the field key for a given field name
+     */
+    public static function fieldKey(string $fieldName): string
+    {
+        return "field_$fieldName";
+    }
 }

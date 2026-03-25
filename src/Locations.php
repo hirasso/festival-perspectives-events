@@ -22,7 +22,7 @@ final class Locations extends Singleton
 
     private function addHooks(): void
     {
-        add_action('init', [$this, 'add_post_type']);
+        add_action('init', [$this, 'add_post_type'], 1);
         add_filter('update_post_meta', [$this, 'update_post_meta_hook'], 10, 4);
         add_action("wp_after_insert_post", [$this, 'wp_after_insert_post'], 20, 2);
         add_filter('map_meta_cap', [$this, 'prevent_location_deletion'], 10, 4);

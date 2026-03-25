@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Hirasso\WP\FPEvents\Tests\Integration;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\FieldGroups\Fields;
 use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
+use Hirasso\WP\FPEvents\Utils;
 use WP_Post;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
 
@@ -100,7 +100,7 @@ class RecurrencesTest extends TestCase
     {
         $args = [
             'meta_input' => [
-                Fields::key(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
+                Utils::fieldKey(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
                     '+30 days 19:00:00',
                     '+60 days 18:00:00',
                     '+60 days 19:00:00',
@@ -137,7 +137,7 @@ class RecurrencesTest extends TestCase
     {
         $args = [
             'meta_input' => [
-                Fields::key(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
+                Utils::fieldKey(EventFields::FURTHER_DATES) => fp_events()->getFurtherDatesRows([
                     'yesterday',
                     '+60 days 18:00:00',
                     '+60 days 19:00:00',

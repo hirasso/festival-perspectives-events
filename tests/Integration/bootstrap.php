@@ -24,6 +24,8 @@ tests_add_filter('muplugins_loaded', function () use ($rootDir) {
 
     /** Overwrite pll post types */
     add_filter('pll_get_post_types', PostTypes::all(...));
+
+
 }, 1);
 
 tests_add_filter('plugins_loaded', function () {
@@ -46,6 +48,7 @@ tests_add_filter('plugins_loaded', function () {
 
 /** Start up the WP testing environment. */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';
+
 
 /** Initialize FPEvents */
 fp_events();
