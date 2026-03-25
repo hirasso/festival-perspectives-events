@@ -17,7 +17,6 @@ class RecurrencesTest extends TestCase
     {
         parent::setUp();
         // $this->setupPolylangLanguages();
-        fp_events();
     }
 
     /**

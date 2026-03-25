@@ -21,18 +21,10 @@ final class FPEvents extends Singleton
     {
         $this->core = Core::instance();
         $this->recurrences = Recurrences::instance();
-    }
-
-    public function addHooks(): static
-    {
-        $this->core->addHooks();
-        $this->recurrences->addHooks();
-        Locations::instance()->addHooks();
-        EventFields::instance()->addHooks();
-        LocationFields::instance()->addHooks();
-        PolylangIntegration::instance()->addHooks();
-
-        return $this;
+        Locations::instance();
+        EventFields::instance();
+        LocationFields::instance();
+        PolylangIntegration::instance();
     }
 
     /**

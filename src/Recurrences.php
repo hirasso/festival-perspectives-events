@@ -30,14 +30,12 @@ final class Recurrences extends Singleton
         if ($this->core->utils->isWpCli()) {
             WP_CLI::add_command('events recurrences create', $this->createRecurrencesCommand(...));
         }
+
+        $this->addHooks();
     }
 
-    public function addHooks(): self
+    private function addHooks(): void
     {
-        if (has_action('init', [$this, 'init_hook'])) {
-            return $this;
-        }
-
         add_action('init', [$this, 'init_hook']);
         add_action('save_post', $this->save_post(...), 20);
         add_action('trashed_post', [$this, 'deleteRecurrences']);
@@ -45,8 +43,6 @@ final class Recurrences extends Singleton
         add_filter('display_post_states', [$this, 'display_post_states'], 10, 2);
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
-
-        return $this;
     }
 
     public function init_hook()

@@ -12,14 +12,6 @@ require_once "$rootDir/vendor/autoload.php";
 /** Provide access to the function `tests_add_filter()` */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/functions.php';
 
-/** Manually load plugin files required for tests. */
-\tests_add_filter('muplugins_loaded', function () use ($rootDir) {
-    /** required for polylang to load in tests */
-    define('PLL_ADMIN', true);
-    require_once "$rootDir/vendor/.wp/plugins/advanced-custom-fields-pro/acf.php";
-    require_once "$rootDir/vendor/.wp/plugins/polylang/polylang.php";
-});
-
 /**
  * Register festival-perspectives-events post types as Polylang-translatable before Polylang
  * bootstraps. Polylang registers the `language` taxonomy for object types
@@ -27,10 +19,22 @@ require_once \getenv('WP_PHPUNIT__DIR') . '/includes/functions.php';
  * `clean_object_term_cache` won't clear `language_relationships` cache for
  * our post types, making pll_set_post_language / pll_get_post_language broken.
  */
-// \tests_add_filter('pll_get_post_types', function (array $post_types): array {
-//     $ours = ['acfe-event', 'acfe-recurrence', 'acfe-location'];
-//     return array_merge($post_types, array_combine($ours, $ours));
-// });
+\tests_add_filter('pll_get_post_types', function (array $post_types): array {
+    $ours = ['acfe-event', 'acfe-recurrence', 'acfe-location'];
+    return array_merge($post_types, array_combine($ours, $ours));
+});
+
+/** Manually load plugin files required for tests. */
+tests_add_filter('muplugins_loaded', function () use ($rootDir) {
+    /** required for polylang to load in tests */
+    define('PLL_ADMIN', true);
+    require_once "$rootDir/vendor/.wp/plugins/advanced-custom-fields-pro/acf.php";
+    require_once "$rootDir/vendor/.wp/plugins/polylang/polylang.php";
+});
+
 
 /** Start up the WP testing environment. */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';
+
+/** Initialize FPEvents() */
+fp_events();

@@ -14,21 +14,17 @@ final class PolylangIntegration extends Singleton
     protected function __construct()
     {
         $this->registerStrings();
+        $this->addHooks();
     }
 
-    public function addHooks(): self
+    private function addHooks(): void
     {
-        if (has_filter('term_link', [$this, 'event_filter_term_link'], 11)) {
-            return $this;
-        }
         if (!$this->isPolylangActive()) {
-            return $this;
+            return;
         }
 
         add_filter('term_link', [$this, 'event_filter_term_link'], 11, 2);
         add_filter('gettext', [$this, 'translate_gettext'], 10, 3);
-
-        return $this;
     }
 
     private function registerStrings(): void

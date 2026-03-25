@@ -19,24 +19,16 @@ final class Locations extends Singleton
     protected function __construct()
     {
         $this->core = Core::instance();
+        $this->addHooks();
     }
 
-    /**
-     * Add WordPress hooks
-     */
-    public function addHooks(): self
+    private function addHooks(): void
     {
-        if (has_action('init', [$this, 'add_post_type'])) {
-            return $this;
-        }
-
         add_action('init', [$this, 'add_post_type']);
         add_filter('update_post_meta', [$this, 'update_post_meta_hook'], 10, 4);
         add_action("wp_after_insert_post", [$this, 'wp_after_insert_post'], 20, 2);
         add_filter('map_meta_cap', [$this, 'prevent_location_deletion'], 10, 4);
         add_filter('acf/pre_update_value', [$this, 'acf_pre_update_value'], 10, 4);
-
-        return $this;
     }
 
 

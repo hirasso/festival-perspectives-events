@@ -17,15 +17,12 @@ abstract class Fields extends \Hirasso\WP\FPEvents\Singleton
     protected function __construct()
     {
         $this->core = Core::instance();
+        $this->addHooks();
     }
 
-    final public function addHooks(): static
+    private function addHooks(): void
     {
-        if (has_action('acf/include_fields', [$this, 'acf_include_fields'])) {
-            return $this;
-        }
         add_action('acf/include_fields', [$this, 'acf_include_fields']);
-        return $this;
     }
 
     /**

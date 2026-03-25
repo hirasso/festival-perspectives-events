@@ -29,14 +29,11 @@ final class Core extends Singleton
     protected function __construct()
     {
         $this->utils = Utils::instance();
+        $this->addHooks();
     }
 
-    public function addHooks(): self
+    private function addHooks(): void
     {
-        if (has_action('init', [$this, 'init_hook'])) {
-            return $this;
-        }
-
         // add_action('wp', fn() => dump($this->utils->getFormattedSql()));
 
         add_action('init', [$this, 'init_hook']);
@@ -50,8 +47,6 @@ final class Core extends Singleton
         add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
         $this->setupArchiver();
-
-        return $this;
     }
 
     /**
