@@ -1,6 +1,6 @@
 # ACF Events
 
-[![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/festival-perspectives-events/ci.yml?label=tests)](https://github.com/hirasso/festival-perspectives-events/actions/workflows/ci.yml)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/festival-perspectives-events/test.yml?label=tests)](https://github.com/hirasso/festival-perspectives-events/actions/workflows/test.yml)
 
 **📆 Open sourced code that powers the program events and locations on the FESTIVAL PERSPECTIVES website. Based on WordPress + Advanced Custom Fields.**
 
