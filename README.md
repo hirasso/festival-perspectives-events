@@ -12,8 +12,9 @@
 ## Main Features
 
 - Interface for creating events and locations
-- Different filters in the frontend: A-Z, by day, by year, by location
-- Automatic creation of recurrences based on a repeater field "Further Dates"
+- Supports grouping results on archive pages: A-Z, by day, by location
+- Automatic creation of recurrences based on an ACF repeater field "Further Dates"
+- Integrates with the [auto-sync feature of Polylang Pro](https://polylang.pro/documentation/support/guides/working-with-acf-pro/#2-5-synchronize)
 
 ## Screenshots
 
