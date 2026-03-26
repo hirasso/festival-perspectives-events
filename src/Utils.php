@@ -34,15 +34,27 @@ final class Utils extends Singleton
     /**
      * Get all years for which events exist
      *
-     * @param string|list<string> $postTypes
-     * @param list<string> $postStati pass `null` explicitly to ignore the post status
-     * @return list<int>
+     * @param string|list<string> $postStatus
+     * @return list<string>
      */
-    public function getYears(string|array $postTypes, array $postStati): array
-    {
+    public function getYearsWithEvents(
+        string|array $postTypes = PostTypes::EVENT,
+        string|array $postStatus = 'publish',
+    ): array {
         $wpdb = $this->wpdb();
 
-        $postTypes = (array) $postTypes;
+        $postTypes = collect($postTypes)
+            ->filter($this->isFilledString(...))
+            ->filter(PostTypes::isEventOrRecurrence(...))
+            ->all();
+
+        if (empty($postTypes)) {
+            return [];
+        }
+
+        $postStati = collect($postStatus)
+            ->filter($this->isFilledString(...))
+            ->all();
 
         $metaKey = EventFields::DATE_AND_TIME;
 
@@ -73,14 +85,32 @@ final class Utils extends Singleton
         );
 
         return collect($wpdb->get_col($query))
-            ->map(absint(...))
+            ->map($this->parseYear(...))
+            ->filter()
             ->all();
+    }
+
+    /**
+     * Get the last year that contains posts from the status
+     */
+    public function getLastYearWithEvents(WP_Query $query): ?string
+    {
+        $postStatus = trim($query->get('post_status'));
+
+        if (!is_admin() && !$postStatus) {
+            $postStatus = 'publish';
+        }
+
+        return $this->getYearsWithEvents(
+            $query->get('post_type'),
+            $postStatus,
+        )[0] ?? null;
     }
 
     /**
      * Parse an unknown variable as a year, returning the year as an integer if valid, otherwise null.
      */
-    public function parseYear(mixed $var): ?int
+    public function parseYear(mixed $var): ?string
     {
         $str = trim((string) $var);
 
@@ -90,10 +120,23 @@ final class Utils extends Singleton
             && (int) $str >= 1000
             && (int) $str <= 9999
         ) {
-            return (int) $str;
+            return (string) $str;
         }
 
         return null;
+    }
+
+    /**
+     * Get the currently queried year. Also handle searches for years.
+     */
+    public function getQueriedYear(WP_Query $query): ?string
+    {
+        /** try from the query */
+        return $this->parseYear($query->get('acfe:year'))
+            ?? $this->parseYear($query->get('year'))
+            ?? $this->parseYear($query->get('s'))
+            /** fall back to the last year with events */
+            ?? $this->getLastYearWithEvents($query);
     }
 
     /**
@@ -169,5 +212,34 @@ final class Utils extends Singleton
         }
 
         return $str;
+    }
+
+    /**
+     * Guess the post type based on a WP_Query
+     */
+    public function guessPostType(WP_Query $query): ?string
+    {
+        if (!empty($query->query_vars['post_type'])) {
+            return collect($query->query_vars['post_type'])->first();
+        }
+
+        $queriedObject = $query->get_queried_object();
+
+        if ($queriedObject instanceof \WP_Post) {
+            return $queriedObject->post_type;
+        }
+
+        if ($queriedObject instanceof \WP_Post_Type) {
+            return $queriedObject->name;
+        }
+
+        if ($queriedObject instanceof \WP_Term) {
+            $tax = get_taxonomy($queriedObject->taxonomy);
+            if ($tax->public) {
+                return collect($tax->object_type)->first();
+            }
+        }
+
+        return null;
     }
 }

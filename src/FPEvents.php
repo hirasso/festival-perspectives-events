@@ -148,7 +148,7 @@ final class FPEvents extends Singleton
         if (!$postID = $this->getPostID($post)) {
             return false;
         }
-        return in_array(get_post_type($postID), [PostTypes::EVENT, PostTypes::RECURRENCE], true);
+        return PostTypes::isEventOrRecurrence(get_post_type($postID));
     }
 
     /**
@@ -343,7 +343,7 @@ final class FPEvents extends Singleton
             return;
         }
 
-        if ($this->guessPostType($query) !== PostTypes::EVENT) {
+        if ($this->utils->guessPostType($query) !== PostTypes::EVENT) {
             return;
         }
 
@@ -354,15 +354,19 @@ final class FPEvents extends Singleton
         }
 
         /** restrict the year, both in the frontend as well as in the admin */
-        $this->restrictToYear($query, $this->getQueriedYear($query));
+        $this->restrictToYear($query, $this->utils->getQueriedYear($query));
     }
 
     /**
      * Restrict a query to a certain year
      */
-    private function restrictToYear(WP_Query $query, int $year): void
+    private function restrictToYear(WP_Query $query, ?string $year): void
     {
         if ($query->get('suppress_filters')) {
+            return;
+        }
+
+        if (!$year = $this->utils->parseYear($year)) {
             return;
         }
 
@@ -378,19 +382,6 @@ final class FPEvents extends Singleton
                 ],
             ],
         ]);
-    }
-
-    /**
-     * Get the currently queried year. Also handle searches for years.
-     */
-    public function getQueriedYear(?WP_Query $query): int
-    {
-        $query ??= $this->utils->getMainQuery();
-
-        return $this->utils->parseYear($query->get('acfe:year'))
-            ?? $this->utils->parseYear($query->get('year'))
-            ?? $this->utils->parseYear($query->get('s'))
-            ?? (int) current_time('Y');
     }
 
     /**
@@ -746,35 +737,6 @@ final class FPEvents extends Singleton
     }
 
     /**
-     * Guess the post type based on a WP_Query
-     */
-    public function guessPostType(WP_Query $query): ?string
-    {
-        if (!empty($query->query_vars['post_type'])) {
-            return collect($query->query_vars['post_type'])->first();
-        }
-
-        $queriedObject = $query->get_queried_object();
-
-        if ($queriedObject instanceof \WP_Post) {
-            return $queriedObject->post_type;
-        }
-
-        if ($queriedObject instanceof \WP_Post_Type) {
-            return $queriedObject->name;
-        }
-
-        if ($queriedObject instanceof \WP_Term) {
-            $tax = get_taxonomy($queriedObject->taxonomy);
-            if ($tax->public) {
-                return collect($tax->object_type)->first();
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Get current URL
      */
     public function getCurrentURL(bool $includeQuery = false): string
@@ -973,16 +935,21 @@ final class FPEvents extends Singleton
      */
     private function renderYearFilter(string $postType): void
     {
-        if ($postType !== PostTypes::EVENT) {
+        if (!PostTypes::isEventOrRecurrence($postType)) {
             return;
         }
 
-        $years = $this->utils->getYears($postType, ['publish']);
-        if (empty($years)) {
+        $query = $this->utils->getMainQuery();
+        $years = $this->utils->getYearsWithEvents(
+            $postType,
+            $query->get('post_status'),
+        );
+
+        if (count($years) < 1) {
             return;
         }
 
-        $selectedYear = $this->getQueriedYear(null);
+        $selectedYear = $this->utils->getQueriedYear($query);
 
         ob_start(); ?>
         <select name="year">
@@ -992,11 +959,7 @@ final class FPEvents extends Singleton
                     'selected' => $year === $selectedYear,
                     'value' => $year,
                 ]) ?>>
-                    <?php
-                        echo $year === $selectedYear
-                        ? sprintf(__('Year %s', 'festival-perspectives-events'), $year)
-                        : $year;
-                ?>
+                    <?= esc_html((string) $year) ?>
                 </option>
             <?php endforeach; ?>
 
@@ -1012,11 +975,15 @@ final class FPEvents extends Singleton
      */
     public function isYearlyArchive(WP_Query $query): bool
     {
-        if ($this->guessPostType($query) !== PostTypes::EVENT) {
+        if ($this->utils->guessPostType($query) !== PostTypes::EVENT) {
             return false;
         }
 
-        return $this->getQueriedYear($query) < (int) current_time('Y');
+        if (!$year = $this->utils->getQueriedYear($query)) {
+            return false;
+        }
+
+        return $year < (int) current_time('Y');
     }
 
     /**
@@ -1053,7 +1020,7 @@ final class FPEvents extends Singleton
      */
     public function getExpiredEvents(string $postType = PostTypes::EVENT): array
     {
-        if (!in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true)) {
+        if (!PostTypes::isEventOrRecurrence($postType)) {
             throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
         }
 
