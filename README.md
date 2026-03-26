@@ -1,7 +1,7 @@
 # Festival Perspectives Events
 
 [![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/festival-perspectives-events/test.yml?label=tests)](https://github.com/hirasso/festival-perspectives-events/actions/workflows/test.yml)
-[![License](https://img.shields.io/github/license/hirasso/festival-perspectives-events.svg)](https://github.com/hirasso/festival-perspectives-events/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/hirasso/festival-perspectives-events.svg?color=brightgreen)](https://github.com/hirasso/festival-perspectives-events/blob/main/LICENSE)
 
 **📆 Open sourced code that powers the program events and locations on the FESTIVAL PERSPECTIVES website. Based on WordPress + Advanced Custom Fields.**
 
