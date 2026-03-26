@@ -1,6 +1,7 @@
-# ACF Events
+# Festival Perspectives Events
 
 [![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/festival-perspectives-events/test.yml?label=tests)](https://github.com/hirasso/festival-perspectives-events/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/hirasso/festival-perspectives-events.svg)](https://github.com/hirasso/festival-perspectives-events/blob/main/LICENSE)
 
 **📆 Open sourced code that powers the program events and locations on the FESTIVAL PERSPECTIVES website. Based on WordPress + Advanced Custom Fields.**
 
@@ -30,7 +31,7 @@
 
 ## Installation
 
-This is not a WordPress plugin. Install it via composer:
+This is not a WordPress plugin. Install it directly from GitHub via Composer:
 
 ```shell
 # add the custom repository to the config:
@@ -39,7 +40,7 @@ composer config repositories.festival-perspectives-events vcs https://github.com
 composer require hirasso/festival-perspectives-events
 ```
 
-Then, in your theme's `functions.php` or wherever you boot your site:
+Then, in your theme's `functions.php`:
 
 ```php
 /** require the composer autoloader */
@@ -47,7 +48,7 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 /** initialize the module */
 fpe();
 /** the same function is also the access point for the API, e.g.: */
-fpe()->getEventDateAndTime($post_id);
+fpe()->getEventDateAndTime($postID);
 ```
 
 ## Notes
