@@ -24,9 +24,11 @@ final readonly class EventDate
     }
 
     /**
-     * Check if the URL contains the recurrence ID
+     * Check if the URL either
+     * – contains the recurrence ID, or
+     * – is the currently queried object
      */
-    private function isCurrent()
+    private function isCurrent(): bool
     {
         $urlID = $_GET['recurrence'] ?? null;
 
