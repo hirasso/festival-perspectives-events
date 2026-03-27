@@ -42,6 +42,7 @@ final class Recurrences extends Singleton
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
         add_filter("acf/validate_value/key=$this->furtherDatesSubFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
         add_filter("acf/prepare_field/key=$this->furtherDatesFieldKey", $this->prepare_field_further_dates(...));
+        add_action('trashed_post', $this->maybeSkipTrash(...));
     }
 
     public function init()
@@ -398,5 +399,15 @@ final class Recurrences extends Singleton
         }
 
         return $field;
+    }
+
+    /**
+     * Skip the trash for recurrences
+     */
+    private function maybeSkipTrash(int $postID): void
+    {
+        if (get_post_type($postID) === PostTypes::RECURRENCE) {
+            wp_delete_post($postID, true);
+        }
     }
 }
