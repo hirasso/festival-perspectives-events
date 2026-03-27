@@ -27,7 +27,7 @@ final class Recurrences extends Singleton
         $this->furtherDatesFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
         $this->furtherDatesSubFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
-        Utils::instance()->addWPCLICommand('recurrences update', $this->updateRecurrencesCommand(...));
+        Utils::instance()->addCommand('recurrences update', $this->updateRecurrencesCommand(...));
 
         $this->addHooks();
     }

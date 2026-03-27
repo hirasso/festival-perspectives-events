@@ -89,7 +89,7 @@ final class FPEvents extends Singleton
 
         add_action($hook, $this->runGarbageCollector(...));
 
-        Utils::instance()->addWPCLICommand('garbage collect', fn() => do_action($hook), [
+        Utils::instance()->addCommand('garbage collect', fn() => do_action($hook), [
             'shortdesc' => 'Run the garbage collector.',
         ]);
 
