@@ -52,7 +52,7 @@ final class FPEvents extends Singleton
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
         add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
-        $this->setupArchiver();
+        $this->setupGarbageCollector();
     }
 
     /**
@@ -80,16 +80,16 @@ final class FPEvents extends Singleton
     }
 
     /**
-     * Setup the archiver
+     * Setup the garbage collector
      */
-    private function setupArchiver(): void
+    private function setupGarbageCollector(): void
     {
-        $hook = 'fpe_run_archiver';
+        $hook = 'fpe/run_garbage_collector';
 
-        add_action($hook, $this->runArchiver(...));
+        add_action($hook, $this->runGarbageCollector(...));
 
-        Utils::instance()->addWPCLICommand('archiver run', fn() => do_action($hook), [
-            'shortdesc' => 'Run the archiver.',
+        Utils::instance()->addWPCLICommand('garbage collect', fn() => do_action($hook), [
+            'shortdesc' => 'Run the garbage collector.',
         ]);
 
         if (!wp_next_scheduled($hook)) {
@@ -104,14 +104,14 @@ final class FPEvents extends Singleton
     /**
      * Run the archiver
      */
-    private function runArchiver(): void
+    private function runGarbageCollector(): void
     {
         $logger = LoggerFactory::create(
-            Archiver::class,
+            GarbageCollector::class,
             isWpCli: $this->utils->isWpCli(),
         );
 
-        $archiver = new Archiver($logger);
+        $archiver = new GarbageCollector($logger);
         $archiver->run();
     }
 
@@ -330,7 +330,9 @@ final class FPEvents extends Singleton
      */
     private function getArchiveArgs(WP_Query $query)
     {
-        $wpdb = $this->utils->wpdb();
+        if (!$query->is_archive()) {
+            return [];
+        }
 
         $groupby = get_query_var('by', null);
 

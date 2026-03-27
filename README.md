@@ -56,14 +56,14 @@ fpe()->getEventDateAndTime($postID);
 
 Notes to future self – NOT a full documentation.
 
-### Scheduled Action 'fpe_run_archiver'
+### Scheduled Action 'fpe/run_garbage_collector'
 
-`do_action('fpe_run_archiver')` is automatically scheduled to run once a day.
+`do_action('fpe/run_garbage_collector')` is automatically scheduled to run once a day.
 By default, expired recurrences are deleted during this action.
 You can hook into the action to perform your custom archiving jobs:
 
 ```php
-add_action('fpe_run_archiver', function() {
+add_action('fpe/run_garbage_collector', function() {
   foreach (fpe()->getExpiredEvents() as $postID) {
       /** for example: remove filters from expired events */
       removeEventFilters($postID);
@@ -71,11 +71,11 @@ add_action('fpe_run_archiver', function() {
 });
 ```
 
-To re-schedule the action to run _now_, you can use `wp cron event unschedule fpe_run_archiver` or a plugin like [WP Crontrol](https://wordpress.org/plugins/wp-crontrol/).
+To re-schedule the action to run _now_, you can use `wp cron event unschedule fpe/run_garbage_collector` or a plugin like [WP Crontrol](https://wordpress.org/plugins/wp-crontrol/).
 
 Alternatively, you can invoke the action via WP CLI:
 
 ```bash
-# triggers the action 'fpe_run_archiver'
-wp fpe archiver run
+# triggers the action 'fpe/run_garbage_collector'
+wp fpe garbage collect
 ```

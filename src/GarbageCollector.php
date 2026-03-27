@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
  *
  * – deletes expired recurrences
  */
-final class Archiver
+final class GarbageCollector
 {
     public function __construct(
         private LoggerInterface $logger,
