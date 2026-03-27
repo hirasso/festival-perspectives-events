@@ -11,6 +11,7 @@ use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
 use InvalidArgumentException;
 use RuntimeException;
+use WP_CLI;
 use WP_Post;
 use WP_Query;
 use WP_Term;
@@ -192,6 +193,33 @@ final class FPEvents extends Singleton
         }
 
         return wp_get_object_terms($event->ID, self::FILTER_TAXONOMY);
+    }
+
+    /**
+     * Remove all event filters from an event
+     */
+    public function removeEventFilters(int $postID): void
+    {
+        if (!$this->utils->isEvent($postID)) {
+            return;
+        }
+
+        $assignedTerms = wp_get_object_terms($postID, self::FILTER_TAXONOMY, ['fields' => 'slugs']);
+
+        if (!count($assignedTerms)) {
+            return;
+        }
+
+        wp_remove_object_terms($postID, $assignedTerms, self::FILTER_TAXONOMY);
+
+        if ($this->utils->isWpCli()) {
+            WP_CLI::success(sprintf(
+                'Removed %d event filters from event #%d: %s',
+                count($assignedTerms),
+                $postID,
+                WP_CLI::colorize('%b' . implode(', ', $assignedTerms) . '%n'),
+            ));
+        }
     }
 
     /**
