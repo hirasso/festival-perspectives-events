@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Integration;
+namespace Hirasso\WP\FPEvents\Tests\Unit;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FPEvents;

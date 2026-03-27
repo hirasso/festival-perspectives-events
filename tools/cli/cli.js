@@ -15,7 +15,6 @@ import {
   patchVersion,
   prepareDistFolder,
   isAtRootDir,
-  testDev,
   error,
 } from "./support.js";
 import { exit } from "node:process";
@@ -51,15 +50,6 @@ const commands = {
     fn: pushReleaseToDist,
     description: "Push the prepared dist folder to the dist repo",
   },
-  // "test:dev": {
-  //   fn: testDev,
-  //   description:
-  //     "Run tests against the development (unscoped) version of the plugin",
-  // },
-  // "test:release": {
-  //   fn: testRelease,
-  //   description: "Run tests against the release (scoped) version of the plugin",
-  // },
   help: {
     fn: printUsage,
     description: "Show available commands for this cli",

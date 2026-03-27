@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\E2E;
+namespace Hirasso\WP\FPEvents\Tests\End2End;
 
 use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;

@@ -288,27 +288,6 @@ function readFile(path) {
 }
 
 /**
- * Run Unit and E2E tests from the unscoped version
- */
-export function testDev() {
-  if (existsSync(".wp-env.override.json")) {
-    info(`Deleting plugins in .wp-env.override.json...`);
-    const overrides = JSON.parse(readFile(".wp-env.override.json") || "{}");
-    rmSync(".wp-env.override.json", { force: true });
-    delete overrides.plugins;
-    if (Object.values(overrides).length) {
-      writeJsonFile(".wp-env.override.json", overrides);
-    }
-
-    info(`Re-Starting wp-env with root folder...`);
-    run(`wp-env start --update`);
-  }
-
-  info(`Running tests against the development version...`);
-  run("pnpm run test");
-}
-
-/**
  * Write JSON to a file
  * @param {string} name
  * @param {any} data

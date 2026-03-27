@@ -10,7 +10,7 @@
     "./vendor/.wp/plugins/advanced-custom-fields-pro",
     "./vendor/.wp/plugins/polylang",
     "./vendor/.wp/plugins/classic-editor",
-    "./tests/E2E"
+    "./tests/e2e"
   ],
   "mappings": {
     "wp-content/plugins/festival-perspectives-events": ".",

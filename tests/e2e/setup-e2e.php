@@ -5,7 +5,7 @@
  * Description: Initializes FPEvents in wp-env and creates content for e2e tests
  */
 
-namespace Hirasso\WP\FPEvents\Tests\E2E;
+namespace Hirasso\WP\FPEvents\Tests\End2End;
 
 /** Exit if accessed directly */
 if (!\defined('ABSPATH')) {
