@@ -189,11 +189,19 @@ final class Recurrences extends Singleton
     private function createRecurrence(int $postID, string $dateString): int
     {
         if (!$this->utils->isOriginalEvent($postID)) {
-            throw new InvalidArgumentException(sprintf(__('Not an event: %d'), $postID));
+            throw new InvalidArgumentException(sprintf(
+                // translators: %d: post ID
+                __('Not an event: %d', 'fpe'),
+                (int) $postID,
+            ));
         }
 
         if (!fpe()->utils->isMySQLDateFormat($dateString)) {
-            throw new InvalidArgumentException(sprintf('Invalid date format: %s', esc_html($dateString)));
+            throw new InvalidArgumentException(sprintf(
+                // translators: %s: date string
+                __('Invalid date format: %s', 'fpe'),
+                esc_html($dateString),
+            ));
         }
 
         $originalMeta = fpe()->getFlatPostMeta($postID);
@@ -347,6 +355,7 @@ final class Recurrences extends Singleton
         }
 
         WP_CLI::success(sprintf(
+            // translators: %d: number of events
             __('Updated recurrences for %d events', 'fpe'),
             $postIDs->count(),
         ));

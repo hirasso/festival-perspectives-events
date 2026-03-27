@@ -41,7 +41,20 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: src/Recurrences.php:350
+#. translators: %d: post ID
+#: src/Recurrences.php:194
+#, php-format
+msgid "Not an event: %d"
+msgstr ""
+
+#. translators: %s: date string
+#: src/Recurrences.php:202
+#, php-format
+msgid "Invalid date format: %s"
+msgstr ""
+
+#. translators: %d: number of events
+#: src/Recurrences.php:359
 #, php-format
 msgid "Updated recurrences for %d events"
 msgstr ""
