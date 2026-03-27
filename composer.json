@@ -22,6 +22,7 @@
     "pestphp/pest": "^1.23",
     "phpstan/extension-installer": "^1.4",
     "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
     "phpunit/phpunit": "^8.5 || ^9.6",
     "roots/wordpress": "^6.9",
     "spatie/phpunit-watcher": "^1.23",
