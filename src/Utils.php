@@ -97,10 +97,14 @@ final class Utils extends Singleton
      */
     public function getLastYearWithEvents(WP_Query $query): ?string
     {
-        $postStatus = trim($query->get('post_status'));
+        /** @var list<string> $postStatus */
+        $postStatus = collect($query->get('post_status'))
+            ->filter($this->isFilledString(...))
+            ->values()
+            ->all();
 
-        if (!is_admin() && !$postStatus) {
-            $postStatus = 'publish';
+        if (!is_admin() && empty($postStatus)) {
+            $postStatus = ['publish'];
         }
 
         return $this->getYearsWithEvents(
