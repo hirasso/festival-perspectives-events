@@ -21,6 +21,7 @@ use WP_Term;
 final class FPEvents extends Singleton
 {
     public Utils $utils;
+    public Recurrences $recurrences;
 
     public const MYSQL_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     public const FILTER_TAXONOMY = 'acfe-event_filter';
@@ -30,7 +31,7 @@ final class FPEvents extends Singleton
         $this->utils = Utils::instance();
         $this->addHooks();
 
-        Recurrences::instance();
+        $this->recurrences = Recurrences::instance();
         Locations::instance();
         EventFields::instance();
         LocationFields::instance();
@@ -122,60 +123,7 @@ final class FPEvents extends Singleton
         return collect($vars)->merge(['by'])->all();
     }
 
-    /**
-     * Get an event, only if the provided post/post_id is an event
-     */
-    public function getEvent(mixed $post): ?WP_Post
-    {
-        $post = get_post($post);
-        return $this->isEvent($post) ? $post : null;
-    }
 
-    /**
-     * Check if a post is an event
-     */
-    public function isEvent(mixed $post)
-    {
-        if (!$postID = $this->getPostID($post)) {
-            return false;
-        }
-        return PostTypes::postTypeIsEventOrRecurrence(get_post_type($postID));
-    }
-
-    /**
-     * Check if a post is an original event
-     */
-    public function isOriginalEvent(string|int|WP_Post $post)
-    {
-        if (!($postID = $this->getPostID($post))) {
-            return false;
-        }
-        return get_post_type($postID) === PostTypes::EVENT;
-    }
-
-    /**
-     * Check if a post is a location
-     */
-    public function isLocation(int|WP_Post $post)
-    {
-        if (!($postID = $this->getPostID($post))) {
-            return false;
-        }
-
-        return get_post_type($postID) === PostTypes::LOCATION;
-    }
-
-    /**
-     * Get the post ID from an unknown $post argument
-     */
-    private function getPostID(string|int|WP_Post|null $post): ?int
-    {
-        if ($post instanceof WP_Post) {
-            return $post->ID;
-        }
-
-        return is_numeric($post) ? (int) $post : null;
-    }
 
     /**
      * Get all dates from an Event. Excludes recurrences in the past via filter
@@ -183,7 +131,7 @@ final class FPEvents extends Singleton
      */
     public function getEventRecurrences(int|WP_Post $event): array
     {
-        if (!$event = $this->getEvent($event)) {
+        if (!$event = $this->utils->getEvent($event)) {
             return [];
         }
 
@@ -214,12 +162,13 @@ final class FPEvents extends Singleton
      */
     public function getEventDates(int|WP_Post $event): array
     {
-        if (!$event = $this->getEvent($event)) {
+        if (!$event = $this->utils->getEvent($event)) {
             return [];
         }
 
         return collect([$event->ID])
-            ->merge($this->getRecurrences($event->ID))
+            ->merge($this->recurrences->getRecurrences($event->ID))
+            ->dump()
             ->map(fn($_, $postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
             ->filter($this->utils->isFilledString(...))
             ->sort()
@@ -237,7 +186,7 @@ final class FPEvents extends Singleton
      */
     public function getEventFilters(int|WP_Post $post): array
     {
-        if (!$event = $this->getEvent($post)) {
+        if (!$event = $this->utils->getEvent($post)) {
             return [];
         }
 
@@ -256,7 +205,7 @@ final class FPEvents extends Singleton
     ): array {
         $postID = $post->ID ?? $post;
 
-        if (!$this->isLocation($postID)) {
+        if (!$this->utils->isLocation($postID)) {
             return [];
         }
 
@@ -290,7 +239,7 @@ final class FPEvents extends Singleton
      */
     public function relevanssi_post_title_before_tokenize(string $title, WP_Post $post): string
     {
-        if (!$this->isEvent($post)) {
+        if (!$this->utils->isEvent($post)) {
             return $title;
         }
 
@@ -653,7 +602,7 @@ final class FPEvents extends Singleton
      */
     public function getEventDuration(int|WP_Post $post): ?string
     {
-        if (!$this->isEvent($post)) {
+        if (!$this->utils->isEvent($post)) {
             return null;
         }
         $duration = get_field(EventFields::DURATION, $post);
@@ -982,7 +931,7 @@ final class FPEvents extends Singleton
      */
     public function isEventInThePast(int|WP_Post $post): bool
     {
-        if (!$this->isEvent($post)) {
+        if (!$this->utils->isEvent($post)) {
             return false;
         }
 
@@ -1026,7 +975,7 @@ final class FPEvents extends Singleton
      */
     public function setFurtherDates(int|WP_Post $event, array $dates): void
     {
-        if (!$event = $this->getEvent($event)) {
+        if (!$event = $this->utils->getEvent($event)) {
             throw new Exception(sprintf('Please provide an event'));
         }
 
@@ -1054,7 +1003,7 @@ final class FPEvents extends Singleton
      */
     public function getEventDateAndTime(int|WP_Post $post, string $separator = ', '): ?string
     {
-        if (!$this->isEvent($post)) {
+        if (!$this->utils->isEvent($post)) {
             return null;
         }
 
@@ -1071,7 +1020,7 @@ final class FPEvents extends Singleton
      */
     public function getEventYear(int|WP_Post $post): ?string
     {
-        if (!$this->isEvent($post)) {
+        if (!$this->utils->isEvent($post)) {
             return null;
         }
 
@@ -1093,26 +1042,5 @@ final class FPEvents extends Singleton
         ])
         ->filter($this->utils->isFilledString(...))
         ->join(', ');
-    }
-
-    /**
-     * Get all recurrences of an event
-     */
-    public function getRecurrences(int $postID)
-    {
-        if (!$this->isOriginalEvent($postID)) {
-            return [];
-        }
-
-        return get_posts([
-            // Ignore the language
-            'lang' => '',
-            'post_type' => PostTypes::RECURRENCE,
-            'post_parent' => $postID,
-            'posts_per_page' => -1,
-            'post_status' => 'any',
-            'fields' => 'ids',
-            'suppress_filters' => true,
-        ]);
     }
 }

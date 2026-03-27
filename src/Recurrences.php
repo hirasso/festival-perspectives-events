@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents;
 
-use Exception;
 use WP_Post;
 use InvalidArgumentException;
 use RuntimeException;
@@ -18,10 +17,12 @@ final class Recurrences extends Singleton
 {
     private string $fieldKey;
     private string $subFieldKey;
+    private Utils $utils;
 
     protected function __construct()
     {
         parent::__construct();
+        $this->utils = Utils::instance();
 
         $this->fieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
         $this->subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
@@ -69,7 +70,7 @@ final class Recurrences extends Singleton
      */
     public function updateRecurrences(int $postID): void
     {
-        if (!fpe()->isOriginalEvent($postID)) {
+        if (!$this->utils->isOriginalEvent($postID)) {
             return;
         }
 
@@ -85,7 +86,7 @@ final class Recurrences extends Singleton
      */
     private function createRecurrencesForTranslations(int $postID, array $dates): void
     {
-        if (!fpe()->isOriginalEvent($postID)) {
+        if (!$this->utils->isOriginalEvent($postID)) {
             return;
         }
 
@@ -110,7 +111,7 @@ final class Recurrences extends Singleton
          *
          * @var array<int, array<string, int>> $recurrenceGroups
          */
-        $recurrenceGroups = collect(fpe()->getRecurrences($postID))
+        $recurrenceGroups = collect($this->getRecurrences($postID))
             ->map(fn($id) => [$postLanguage => $id])
             ->all();
 
@@ -131,11 +132,11 @@ final class Recurrences extends Singleton
      */
     public function deleteRecurrences(int $postID): void
     {
-        if (!fpe()->isOriginalEvent($postID)) {
+        if (!$this->utils->isOriginalEvent($postID)) {
             return;
         }
 
-        $recurrences = fpe()->getRecurrences($postID);
+        $recurrences = $this->getRecurrences($postID);
 
         foreach ($recurrences as $recurrenceID) {
             wp_delete_post($recurrenceID, true);
@@ -152,7 +153,7 @@ final class Recurrences extends Singleton
      */
     private function createRecurrences(int $postID, array $dates): array
     {
-        if (!fpe()->isOriginalEvent($postID)) {
+        if (!$this->utils->isOriginalEvent($postID)) {
             return [];
         }
 
@@ -173,7 +174,7 @@ final class Recurrences extends Singleton
      */
     public function getFurtherDates(int|WP_Post $post): array
     {
-        if (!$event = fpe()->getEvent($post)) {
+        if (!$event = fpe()->utils->getEvent($post)) {
             return [];
         }
 
@@ -187,12 +188,12 @@ final class Recurrences extends Singleton
      */
     private function createRecurrence(int $postID, string $dateString): int
     {
-        if (!fpe()->isOriginalEvent($postID)) {
-            throw new RuntimeException(sprintf(__('Not an event: %d'), $postID));
+        if (!$this->utils->isOriginalEvent($postID)) {
+            throw new InvalidArgumentException(sprintf(__('Not an event: %d'), $postID));
         }
 
         if (!fpe()->utils->isMySQLDateFormat($dateString)) {
-            throw new Exception("Invalid date format: $dateString");
+            throw new InvalidArgumentException(sprintf('Invalid date format: %s', esc_html($dateString)));
         }
 
         $originalMeta = fpe()->getFlatPostMeta($postID);
@@ -326,7 +327,7 @@ final class Recurrences extends Singleton
     {
         $postIDs = collect($args);
 
-        if ($invalid = $postIDs->first(fn($id) => !fpe()->isOriginalEvent($id))) {
+        if ($invalid = $postIDs->first(fn($id) => !$this->utils->isOriginalEvent($id))) {
             WP_CLI::error("Not a valid event post ID: '{$invalid}'");
         }
 
@@ -338,5 +339,26 @@ final class Recurrences extends Singleton
             'Created recurrences for %d events',
             count($args),
         ));
+    }
+
+    /**
+     * Get all recurrences of an event
+     */
+    public function getRecurrences(int $postID)
+    {
+        if (!$this->utils->isOriginalEvent($postID)) {
+            return [];
+        }
+
+        return get_posts([
+            // Ignore the language
+            'lang' => '',
+            'post_type' => PostTypes::RECURRENCE,
+            'post_parent' => $postID,
+            'posts_per_page' => -1,
+            'post_status' => get_post_status($postID),
+            'fields' => 'ids',
+            'suppress_filters' => true,
+        ]);
     }
 }

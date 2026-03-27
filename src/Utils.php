@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Hirasso\WP\FPEvents;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
+use InvalidArgumentException;
 use WP_CLI;
+use WP_Post;
 use WP_Query;
 use wpdb;
 
@@ -251,9 +253,12 @@ final class Utils extends Singleton
      * compare them to "now", we must express "now" in the same naive Berlin format
      * rather than doing any timezone conversion.
      */
-    public function isInThePast(string $date): bool
+    public function isInThePast(string $dateString): bool
     {
-        return $date < current_time(FPEvents::MYSQL_DATE_TIME_FORMAT);
+        if (!fpe()->utils->isMySQLDateFormat($dateString)) {
+            throw new InvalidArgumentException(sprintf('Invalid date format: %s', esc_html($dateString)));
+        }
+        return $dateString < current_time(FPEvents::MYSQL_DATE_TIME_FORMAT);
     }
 
     /**
@@ -271,5 +276,62 @@ final class Utils extends Singleton
     {
         $datetime = \DateTime::createFromFormat($expectedFormat, $dateString);
         return $datetime && $datetime->format($expectedFormat) === $dateString;
+    }
+
+    /**
+     * Check if a post is an original event
+     */
+    public function isOriginalEvent(string|int|WP_Post $post)
+    {
+        if (!($postID = $this->getPostID($post))) {
+            return false;
+        }
+        return get_post_type($postID) === PostTypes::EVENT;
+    }
+
+    /**
+     * Get an event, only if the provided post/post_id is an event
+     */
+    public function getEvent(mixed $post): ?WP_Post
+    {
+        $post = get_post($post);
+        return $this->isEvent($post) ? $post : null;
+    }
+
+    /**
+     * Check if a post is an event
+     */
+    public function isEvent(mixed $post)
+    {
+        if (!$postID = $this->getPostID($post)) {
+            return false;
+        }
+        return PostTypes::postTypeIsEventOrRecurrence(get_post_type($postID));
+    }
+
+    /**
+     * Check if a post is a location
+     */
+    public function isLocation(int|WP_Post $post)
+    {
+        if (!($postID = $this->getPostID($post))) {
+            return false;
+        }
+
+        return get_post_type($postID) === PostTypes::LOCATION;
+    }
+
+
+
+    /**
+     * Get the post ID from an unknown $post argument
+     */
+    private function getPostID(string|int|WP_Post|null $post): ?int
+    {
+        if ($post instanceof WP_Post) {
+            return $post->ID;
+        }
+
+        return is_numeric($post) ? (int) $post : null;
     }
 }
