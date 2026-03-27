@@ -1,8 +1,11 @@
 <?php
 
-declare(strict_types=1);
+/**
+ * Plugin Name: FPEvents Setup Plugin
+ * Description: Initializes FPEvents in wp-env and creates content for e2e tests
+ */
 
-namespace Hirasso\WP\FPEvents\Tests\End2End;
+declare(strict_types=1);
 
 use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
@@ -14,10 +17,13 @@ if (!\defined('ABSPATH')) {
     exit;
 }
 
+/** Load the composer autoloader from festival-perspectives-events.php */
+require_once dirname(__DIR__) . '/festival-perspectives-events/vendor/autoload.php';
+
 /**
  * Setup context to run e2e tests against
  */
-final class Setup
+final class FPEventsSetupPlugin
 {
     public function __construct()
     {
@@ -53,8 +59,8 @@ final class Setup
 
         return wp_insert_post([
             'post_type'   => PostTypes::LOCATION,
-            'post_title'  => 'E2E Test Location',
-            'post_name'   => 'e2e-test-location',
+            'post_title'  => 'Test Location',
+            'post_name'   => 'test-location',
             'post_status' => 'publish',
             'meta_input'  => [
                 LocationFields::ADDRESS => "Test Street 1\n12345 Test City",
@@ -72,8 +78,8 @@ final class Setup
 
         return wp_insert_post([
             'post_type'   => PostTypes::EVENT,
-            'post_title'  => 'E2E Test Event',
-            'post_name'   => 'e2e-test-event',
+            'post_title'  => 'Test Event',
+            'post_name'   => 'test-event',
             'post_status' => 'publish',
             'meta_input'  => [
                 EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('+6 months')),
@@ -110,3 +116,5 @@ final class Setup
     }
 
 }
+
+new FPEventsSetupPlugin();

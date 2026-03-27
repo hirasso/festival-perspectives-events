@@ -10,7 +10,6 @@ const { blue, red, bold } = pc;
 import {
   dd,
   createRelease,
-  testRelease,
   pushReleaseToDist,
   patchVersion,
   prepareDistFolder,

@@ -58,8 +58,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Hirasso\\WP\\FPEvents\\Tests\\Unit\\": "tests/unit",
-      "Hirasso\\WP\\FPEvents\\Tests\\End2End\\": "tests/e2e"
+      "Hirasso\\WP\\FPEvents\\Tests\\Unit\\": "tests/unit"
     }
   },
   "config": {
