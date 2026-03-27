@@ -290,6 +290,14 @@ final class Utils extends Singleton
     }
 
     /**
+     * Check if the post status of a post can be considered "visible"
+     */
+    public function isVisiblePostStatus(int $postID)
+    {
+        return collect(['publish', 'future', 'private'])->contains(get_post_status($postID));
+    }
+
+    /**
      * Get an event, only if the provided post/post_id is an event
      */
     public function getEvent(mixed $post): ?WP_Post

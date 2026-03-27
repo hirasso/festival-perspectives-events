@@ -343,6 +343,7 @@ final class Recurrences extends Singleton
 
     /**
      * Get all recurrences of an event
+     * @return list<int>
      */
     public function getRecurrences(int $postID)
     {

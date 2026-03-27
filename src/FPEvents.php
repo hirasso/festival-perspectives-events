@@ -162,14 +162,15 @@ final class FPEvents extends Singleton
      */
     public function getEventDates(int|WP_Post $event): array
     {
-        if (!$event = $this->utils->getEvent($event)) {
+        $event = get_post($event);
+
+        if (!$this->utils->isOriginalEvent($event)) {
             return [];
         }
 
         return collect([$event->ID])
             ->merge($this->recurrences->getRecurrences($event->ID))
-            ->dump()
-            ->map(fn($_, $postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
+            ->map(fn($postID) => get_field(EventFields::DATE_AND_TIME, $postID, false))
             ->filter($this->utils->isFilledString(...))
             ->sort()
             ->map(fn($dateString, $postID) => new EventDate(
@@ -625,14 +626,6 @@ final class FPEvents extends Singleton
         [$hours, $minutes] = collect(explode(':', $duration))->map(fn($value) => absint($value))->all();
 
         return ($hours * 60) + $minutes;
-    }
-
-    /**
-     * Check if the post status of a post can be considered "visible"
-     */
-    public function isVisiblePostStatus(int $postID)
-    {
-        return collect(['publish', 'future', 'private'])->contains(get_post_status($postID));
     }
 
     /**

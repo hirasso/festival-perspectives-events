@@ -14,9 +14,12 @@ use WP_Post;
  */
 final class Locations extends Singleton
 {
+    private Utils $utils;
+
     protected function __construct()
     {
         parent::__construct();
+        $this->utils = Utils::instance();
         $this->addHooks();
     }
 
@@ -56,7 +59,7 @@ final class Locations extends Singleton
      */
     public function update_post_meta_hook(mixed $x, int $id, string $key, mixed $value): mixed
     {
-        if (fpe()->isEvent($id) && $key === EventFields::LOCATION_ID) {
+        if ($this->utils->isEvent($id) && $key === EventFields::LOCATION_ID) {
             $this->updateEvent($id, (int) $value);
         }
 
@@ -68,14 +71,14 @@ final class Locations extends Singleton
      */
     private function updateEvent(int $eventID, int $locationID): void
     {
-        if (!fpe()->isEvent($eventID)) {
+        if (!$this->utils->isEvent($eventID)) {
             throw new InvalidArgumentException("Not an event: $eventID");
         }
 
         $name = "";
         $sortName = "";
 
-        if (fpe()->isLocation($locationID)) {
+        if ($this->utils->isLocation($locationID)) {
             $name = get_the_title($locationID);
             $sortName = get_post_meta($locationID, LocationFields::SORT_NAME, true) ?: $name;
         }
@@ -90,8 +93,8 @@ final class Locations extends Singleton
     public function wp_after_insert_post(int $locationID, WP_Post $post): void
     {
         if (
-            !fpe()->isLocation($post)
-            || !fpe()->isVisiblePostStatus($locationID)
+            !$this->utils->isLocation($post)
+            || !$this->utils->isVisiblePostStatus($locationID)
         ) {
             return;
         }
