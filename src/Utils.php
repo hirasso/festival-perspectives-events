@@ -346,4 +346,30 @@ final class Utils extends Singleton
 
         return is_numeric($post) ? (int) $post : null;
     }
+
+    /**
+     * Run a callback while temporarily disabling all filters
+     *
+     * @template TReturn
+     * @param callable(): TReturn $callback
+     * @return TReturn
+     */
+    public function unfiltered(callable $callback)
+    {
+        global $wp_filter;
+
+        // 1. Store all current filters
+        $__wp_filters = $wp_filter;
+
+        // 2. Clear all filters (and actions — they're stored the same way)
+        $wp_filter = [];
+
+        // 3. Run your callbac unaffected by any hooks
+        $result = $callback();
+
+        // 4. Restore filters
+        $wp_filter = $__wp_filters;
+
+        return $result;
+    }
 }

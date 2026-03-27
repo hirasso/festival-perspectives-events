@@ -334,15 +334,15 @@ final class Recurrences extends Singleton
      */
     private function updateRecurrencesCommand(array $args): void
     {
+        $updateAll = count($args) === 1 && $args[0] === 'all';
+
         $postIDs = collect(match (true) {
-            count($args) === 1 && $args[0] === 'all' => get_posts([
+            $updateAll => $this->utils->unfiltered(fn() => get_posts([
                 'post_type' => PostTypes::EVENT,
                 'posts_per_page' => -1,
                 'post_status' => 'any',
                 'fields' => 'ids',
-                'lang' => '',
-                'suppress_filters' => true,
-            ]),
+            ])),
             default => $args,
         });
 
@@ -371,15 +371,12 @@ final class Recurrences extends Singleton
             return [];
         }
 
-        return get_posts([
-            // Ignore the language
-            'lang' => '',
+        return $this->utils->unfiltered(fn() => get_posts([
             'post_type' => PostTypes::RECURRENCE,
             'post_parent' => $postID,
             'posts_per_page' => -1,
             'post_status' => get_post_status($postID),
             'fields' => 'ids',
-            'suppress_filters' => true,
-        ]);
+        ]));
     }
 }

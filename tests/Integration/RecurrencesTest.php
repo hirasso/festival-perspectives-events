@@ -93,11 +93,11 @@ class RecurrencesTest extends TestCase
         [$event, $eventFR] = $this->createEvent($furtherDates);
         fpe()->setFurtherDates($event, $furtherDates);
 
-        $recurrences = fpe()->getRecurrences($event->ID);
+        $recurrences = fpe()->recurrences->getRecurrences($event->ID);
         $this->assertSame(count($recurrences), count($furtherDates));
 
         // Only a simple check for french :)
-        $this->assertSame(count(fpe()->getRecurrences($eventFR->ID)), 3);
+        $this->assertSame(count(fpe()->recurrences->getRecurrences($eventFR->ID)), 3);
 
         /**
          * For each further date, a matching
@@ -124,7 +124,7 @@ class RecurrencesTest extends TestCase
             '+60 days 19:00:00',
         ]);
 
-        $recurrences = fpe()->getRecurrences($event->ID);
+        $recurrences = fpe()->recurrences->getRecurrences($event->ID);
 
         $this->assertSame(count($recurrences), 2);
     }
