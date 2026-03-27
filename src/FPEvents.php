@@ -46,7 +46,7 @@ final class FPEvents extends Singleton
         add_filter('relevanssi_post_title_before_tokenize', [$this, 'relevanssi_post_title_before_tokenize'], 10, 2);
         add_filter('pll_get_post_types', [$this, 'pll_get_post_types'], 10, 2);
         add_filter('query_vars', [$this, 'query_vars']);
-        add_action('pre_get_posts', $this->prepare_main_query(...));
+        add_action('pre_get_posts', $this->pre_get_posts(...));
         add_filter('term_link', [$this, 'term_link'], 10, 2);
         add_filter('relevanssi_hits_filter', [$this, 'relevanssi_hits_filter'], 10, 2);
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
@@ -274,7 +274,7 @@ final class FPEvents extends Singleton
     /**
      * Prepare the main archive query for events
      */
-    public function prepare_main_query(WP_Query $query): void
+    public function pre_get_posts(WP_Query $query): void
     {
         if (!$query->is_main_query()) {
             return;
