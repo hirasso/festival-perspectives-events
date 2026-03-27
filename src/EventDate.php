@@ -23,6 +23,9 @@ final readonly class EventDate
         $this->isCurrent = $this->isCurrent();
     }
 
+    /**
+     * Check if the URL contains the recurrence ID
+     */
     private function isCurrent()
     {
         $urlID = $_GET['recurrence'] ?? null;
