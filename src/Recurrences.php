@@ -15,8 +15,8 @@ use WP_CLI;
  */
 final class Recurrences extends Singleton
 {
-    private string $fieldKey;
-    private string $subFieldKey;
+    private string $furtherDatesFieldKey;
+    private string $furtherDatesSubFieldKey;
     private Utils $utils;
 
     protected function __construct()
@@ -24,8 +24,8 @@ final class Recurrences extends Singleton
         parent::__construct();
         $this->utils = Utils::instance();
 
-        $this->fieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
-        $this->subFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
+        $this->furtherDatesFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES);
+        $this->furtherDatesSubFieldKey = Utils::fieldKey(EventFields::FURTHER_DATES_DATE_AND_TIME);
 
         Utils::instance()->addWPCLICommand('recurrences update', $this->updateRecurrencesCommand(...));
 
@@ -40,7 +40,8 @@ final class Recurrences extends Singleton
         add_action('before_delete_post', [$this, 'deleteRecurrences']);
         add_filter('display_post_states', [$this, 'display_post_states'], 10, 2);
         add_filter('post_type_link', [$this, 'post_type_link'], 10, 2);
-        add_filter("acf/validate_value/key=$this->subFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
+        add_filter("acf/validate_value/key=$this->furtherDatesSubFieldKey", [$this, 'acf_validate_value_further_date'], 10, 2);
+        add_filter("acf/prepare_field/key=$this->furtherDatesFieldKey", $this->prepare_field_further_dates(...));
     }
 
     public function init()
@@ -178,9 +179,9 @@ final class Recurrences extends Singleton
             return [];
         }
 
-        $furtherDates = get_field($this->fieldKey, $event, false) ?: [];
+        $furtherDates = get_field($this->furtherDatesFieldKey, $event, false) ?: [];
 
-        return array_column($furtherDates, $this->subFieldKey);
+        return array_column($furtherDates, $this->furtherDatesSubFieldKey);
     }
 
     /**
@@ -237,13 +238,16 @@ final class Recurrences extends Singleton
             ])
             ->all();
 
-        $result = wp_insert_post($postarr, true);
+        $recurrenceID = wp_insert_post($postarr, true);
 
-        if (is_wp_error($result)) {
-            throw new RuntimeException($result->get_error_message());
+        if (is_wp_error($recurrenceID)) {
+            throw new RuntimeException($recurrenceID->get_error_message());
         }
 
-        return $result;
+        /** recurrences don't need the further dates */
+        delete_field(EventFields::FURTHER_DATES, $recurrenceID);
+
+        return $recurrenceID;
     }
 
     /**
@@ -303,8 +307,8 @@ final class Recurrences extends Singleton
             return "Each date must be different from the original event's date and time.";
         }
 
-        $isDuplicate = collect($_POST['acf'][$this->fieldKey] ?? [])
-            ->pluck($this->subFieldKey)
+        $isDuplicate = collect($_POST['acf'][$this->furtherDatesFieldKey] ?? [])
+            ->pluck($this->furtherDatesSubFieldKey)
             ->duplicates()
             ->contains($value);
 
@@ -378,5 +382,21 @@ final class Recurrences extends Singleton
             'post_status' => get_post_status($postID),
             'fields' => 'ids',
         ]));
+    }
+
+    /**
+     * Only show the further dates field on original event edit pages
+     */
+    private function prepare_field_further_dates(?array $field): ?array
+    {
+        if (empty($field)) {
+            return null;
+        }
+
+        if (get_post_type() !== PostTypes::EVENT) {
+            return null;
+        }
+
+        return $field;
     }
 }
