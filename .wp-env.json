@@ -17,6 +17,6 @@
     "wp-content/uploads": "./tests/uploads"
   },
   "config": {
-    "ACFE_ENV": "development"
+    "ACFE_ENV": "test"
   }
 }
