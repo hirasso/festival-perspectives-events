@@ -158,14 +158,13 @@ final class FPEvents extends Singleton
     }
 
     /**
-     * Get all dates from an Event. Excludes recurrences in the past via filter
+     * Get all dates from an Event
+     *
      * @return EventDate[]
      */
-    public function getEventDates(int|WP_Post $event): array
+    public function getEventDates(int|WP_Post $p): array
     {
-        $event = get_post($event);
-
-        if (!$this->utils->isOriginalEvent($event)) {
+        if (!$event = $this->utils->getOriginalEvent($p)) {
             return [];
         }
 
@@ -200,10 +199,6 @@ final class FPEvents extends Singleton
      */
     public function removeEventFilters(int $postID): void
     {
-        if (!$this->utils->isEvent($postID)) {
-            return;
-        }
-
         $assignedTerms = wp_get_object_terms($postID, self::FILTER_TAXONOMY, ['fields' => 'slugs']);
 
         if (!count($assignedTerms)) {

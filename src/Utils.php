@@ -301,6 +301,17 @@ final class Utils extends Singleton
     }
 
     /**
+     * Get the original event, either from an event or a recurrence
+     */
+    public function getOriginalEvent(mixed $post): ?WP_Post
+    {
+        if (!$event = $this->getEvent($post)) {
+            return null;
+        }
+        return $event->post_parent ? get_post($event->post_parent) : $event;
+    }
+
+    /**
      * Get an event, only if the provided post/post_id is an event
      */
     public function getEvent(mixed $post): ?WP_Post
@@ -312,7 +323,7 @@ final class Utils extends Singleton
     /**
      * Check if a post is an event
      */
-    public function isEvent(mixed $post)
+    public function isEvent(mixed $post): bool
     {
         if (!$postID = $this->getPostID($post)) {
             return false;
@@ -323,9 +334,9 @@ final class Utils extends Singleton
     /**
      * Check if a post is a location
      */
-    public function isLocation(int|WP_Post $post)
+    public function isLocation(mixed $post): bool
     {
-        if (!($postID = $this->getPostID($post))) {
+        if (!$postID = $this->getPostID($post)) {
             return false;
         }
 
