@@ -52,7 +52,7 @@ final class FPEventsSetupPlugin
 
     private function ensureTestLocation(): int
     {
-        $existing = get_page_by_path('e2e-test-location', OBJECT, PostTypes::LOCATION);
+        $existing = get_page_by_path('test-location', OBJECT, PostTypes::LOCATION);
         if ($existing) {
             return $existing->ID;
         }
@@ -71,7 +71,7 @@ final class FPEventsSetupPlugin
 
     private function ensureTestEvent(int $locationId): int
     {
-        $existing = get_page_by_path('e2e-test-event', OBJECT, PostTypes::EVENT);
+        $existing = get_page_by_path('test-event', OBJECT, PostTypes::EVENT);
         if ($existing) {
             return $existing->ID;
         }
