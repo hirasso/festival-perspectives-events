@@ -45,7 +45,7 @@ final class Utils extends Singleton
 
         $postTypes = collect($postTypes)
             ->filter($this->isFilledString(...))
-            ->filter(PostTypes::isEventOrRecurrence(...))
+            ->filter(PostTypes::postTypeIsEventOrRecurrence(...))
             ->all();
 
         if (empty($postTypes)) {
@@ -241,5 +241,35 @@ final class Utils extends Singleton
         }
 
         return null;
+    }
+
+    /**
+     * Check if a given date is in the past.
+     *
+     * Dates from ACF are stored as naive strings in the Europe/Berlin timezone
+     * (e.g. "2026-06-14 12:00:00") with no timezone info attached. To correctly
+     * compare them to "now", we must express "now" in the same naive Berlin format
+     * rather than doing any timezone conversion.
+     */
+    public function isInThePast(string $date): bool
+    {
+        return $date < current_time(FPEvents::MYSQL_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Check if a date string is in the format 'Y-m-d H:i:s'
+     */
+    public function isMySQLDateFormat(string $dateString): bool
+    {
+        return $this->isDateFormat($dateString, FPEvents::MYSQL_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Check if a provided date string conforms to an expected format
+     */
+    private function isDateFormat(string $dateString, string $expectedFormat): bool
+    {
+        $datetime = \DateTime::createFromFormat($expectedFormat, $dateString);
+        return $datetime && $datetime->format($expectedFormat) === $dateString;
     }
 }

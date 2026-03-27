@@ -123,15 +123,6 @@ final class FPEvents extends Singleton
     }
 
     /**
-     * Validate that a provided date string conforms to an expected format
-     */
-    public function parseDateInFormat(string $dateString, string $expectedFormat = self::MYSQL_DATE_TIME_FORMAT): bool
-    {
-        $datetime = \DateTime::createFromFormat($expectedFormat, $dateString);
-        return $datetime && $datetime->format($expectedFormat) === $dateString;
-    }
-
-    /**
      * Get an event, only if the provided post/post_id is an event
      */
     public function getEvent(mixed $post): ?WP_Post
@@ -148,7 +139,7 @@ final class FPEvents extends Singleton
         if (!$postID = $this->getPostID($post)) {
             return false;
         }
-        return PostTypes::isEventOrRecurrence(get_post_type($postID));
+        return PostTypes::postTypeIsEventOrRecurrence(get_post_type($postID));
     }
 
     /**
@@ -935,7 +926,7 @@ final class FPEvents extends Singleton
      */
     private function renderYearFilter(string $postType): void
     {
-        if (!PostTypes::isEventOrRecurrence($postType)) {
+        if (!PostTypes::postTypeIsEventOrRecurrence($postType)) {
             return;
         }
 
@@ -996,20 +987,7 @@ final class FPEvents extends Singleton
         }
 
         return collect($this->getEventDates($post))
-            ->every(fn($eventDate) => $this->isInThePast($eventDate->toMySQLString()));
-    }
-
-    /**
-     * Check if a given date is in the past.
-     *
-     * Dates from ACF are stored as naive strings in the Europe/Berlin timezone
-     * (e.g. "2026-06-14 12:00:00") with no timezone info attached. To correctly
-     * compare them to "now", we must express "now" in the same naive Berlin format
-     * rather than doing any timezone conversion.
-     */
-    public function isInThePast(string $date): bool
-    {
-        return $date < current_time(self::MYSQL_DATE_TIME_FORMAT);
+            ->every(fn($eventDate) => $this->utils->isInThePast($eventDate->toMySQLString()));
     }
 
     /**
@@ -1020,7 +998,7 @@ final class FPEvents extends Singleton
      */
     public function getExpiredEvents(string $postType = PostTypes::EVENT): array
     {
-        if (!PostTypes::isEventOrRecurrence($postType)) {
+        if (!PostTypes::postTypeIsEventOrRecurrence($postType)) {
             throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
         }
 

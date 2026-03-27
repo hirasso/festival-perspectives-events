@@ -162,7 +162,7 @@ final class Recurrences extends Singleton
          * Create a recurrence for each provided date
          */
         return collect($dates)
-            ->filter(fn(string $date) => !fpe()->isInThePast($date))
+            ->filter(fn(string $date) => !fpe()->utils->isInThePast($date))
             ->map(fn(string $dateTime) => $this->createRecurrence($postID, $dateTime))
             ->values()
             ->all();
@@ -185,14 +185,14 @@ final class Recurrences extends Singleton
     /**
      * Create an event recurrence entry
      */
-    private function createRecurrence(int $postID, string $dateTime): int
+    private function createRecurrence(int $postID, string $dateString): int
     {
         if (!fpe()->isOriginalEvent($postID)) {
             throw new RuntimeException(sprintf(__('Not an event: %d'), $postID));
         }
 
-        if (!fpe()->parseDateInFormat($dateTime)) {
-            throw new Exception("Invalid date format: $dateTime");
+        if (!fpe()->utils->isMySQLDateFormat($dateString)) {
+            throw new Exception("Invalid date format: $dateString");
         }
 
         $originalMeta = fpe()->getFlatPostMeta($postID);
@@ -207,7 +207,7 @@ final class Recurrences extends Singleton
             ])
             ->all();
 
-        $postName = $originalPostArray['post_name'] . '-' . md5($dateTime);
+        $postName = $originalPostArray['post_name'] . '-' . sanitize_title($dateString);
 
         $postarr = collect($originalPostArray)
             ->only([
@@ -222,7 +222,7 @@ final class Recurrences extends Singleton
                 'post_parent' => $postID,
                 'meta_input' => [
                     ...$originalMeta, // needed for searching
-                    EventFields::DATE_AND_TIME => $dateTime,
+                    EventFields::DATE_AND_TIME => $dateString,
                 ],
                 'tax_input' => $taxInput,
             ])
