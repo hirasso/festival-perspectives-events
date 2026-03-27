@@ -312,12 +312,13 @@ final class Recurrences extends Singleton
      *
      * ## OPTIONS
      *
-     * <post-id>...
-     * : One or more event post IDs to update recurrences for.
+     * [<post-id>...]
+     * : One or more event post IDs to update recurrences for. Pass "all" to update all events.
      *
      * ## EXAMPLES
      *
      *     wp events recurrences update 423 857 920
+     *     wp events recurrences update all
      *
      * @param list<string> $args
      *
@@ -325,7 +326,17 @@ final class Recurrences extends Singleton
      */
     private function updateRecurrencesCommand(array $args): void
     {
-        $postIDs = collect($args);
+        $postIDs = collect(match (true) {
+            count($args) === 1 && $args[0] === 'all' => get_posts([
+                'post_type' => PostTypes::EVENT,
+                'posts_per_page' => -1,
+                'post_status' => 'any',
+                'fields' => 'ids',
+                'lang' => '',
+                'suppress_filters' => true,
+            ]),
+            default => $args,
+        });
 
         if ($invalid = $postIDs->first(fn($id) => !$this->utils->isOriginalEvent($id))) {
             WP_CLI::error("Not a valid event post ID: '{$invalid}'");
@@ -336,8 +347,8 @@ final class Recurrences extends Singleton
         }
 
         WP_CLI::success(sprintf(
-            'Created recurrences for %d events',
-            count($args),
+            __('Updated recurrences for %d events', 'fpe'),
+            $postIDs->count(),
         ));
     }
 

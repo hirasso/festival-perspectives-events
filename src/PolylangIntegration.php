@@ -13,7 +13,6 @@ final class PolylangIntegration extends Singleton
 {
     protected function __construct()
     {
-        $this->registerStrings();
         $this->addHooks();
     }
 
@@ -23,29 +22,7 @@ final class PolylangIntegration extends Singleton
             return;
         }
 
-        add_filter('term_link', [$this, 'event_filter_term_link'], 11, 2);
-        add_filter('gettext', [$this, 'translate_gettext'], 10, 3);
-    }
-
-    private function registerStrings(): void
-    {
-        if (!$this->isPolylangActive()) {
-            return;
-        }
-
-        pll_register_string('festival-perspectives-events', 'Minutes');
-        pll_register_string('festival-perspectives-events', 'Program');
-        pll_register_string('festival-perspectives-events', 'A-Z');
-        pll_register_string('festival-perspectives-events', 'Calendar');
-        pll_register_string('festival-perspectives-events', 'Places');
-        pll_register_string('festival-perspectives-events', 'Yesterday');
-        pll_register_string('festival-perspectives-events', 'Today');
-        pll_register_string('festival-perspectives-events', 'Tomorrow');
-        pll_register_string('festival-perspectives-events', 'Open in Maps');
-        pll_register_string('festival-perspectives-events', 'Tickets');
-        pll_register_string('festival-perspectives-events', 'Location');
-        pll_register_string('festival-perspectives-events', 'Cast');
-        pll_register_string('festival-perspectives-events', 'Production');
+        add_filter('term_link', $this->event_filter_term_link(...), 11, 2);
     }
 
     /**
@@ -101,16 +78,5 @@ final class PolylangIntegration extends Singleton
         $link = \PLL()->links_model->switch_language_in_link($link, $termLanguage);
 
         return $link;
-    }
-
-    /**
-     * Translate __('something', 'festival-perspectives-events') using Polylang
-     */
-    public function translate_gettext(string $translated, string $original, string $domain): string
-    {
-        if ($domain === 'festival-perspectives-events' && $translated === $original) {
-            return pll__($original);
-        }
-        return $translated;
     }
 }

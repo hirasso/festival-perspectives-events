@@ -1,0 +1,47 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://github.com/hirasso/fpe/\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: fpe\n"
+
+#: src/FPEvents.php:614
+msgid "Minutes"
+msgstr ""
+
+#: src/FPEvents.php:651
+msgid "Today"
+msgstr ""
+
+#: src/FPEvents.php:652
+msgid "Yesterday"
+msgstr ""
+
+#: src/FPEvents.php:653
+msgid "Tomorrow"
+msgstr ""
+
+#: src/FPEvents.php:814
+#: src/FPEvents.php:818
+msgid "Location"
+msgstr ""
+
+#: src/FPEvents.php:815
+msgid "Dates"
+msgstr ""
+
+#: src/FPEvents.php:819
+msgid "Date"
+msgstr ""
+
+#: src/Recurrences.php:350
+#, php-format
+msgid "Updated recurrences for %d events"
+msgstr ""

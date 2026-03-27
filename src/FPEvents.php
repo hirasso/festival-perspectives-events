@@ -611,7 +611,7 @@ final class FPEvents extends Singleton
         $duration = get_field(EventFields::DURATION, $post);
         $minutes = $this->durationToMinutes($duration);
 
-        $label = __('Minutes', 'festival-perspectives-events');
+        $label = __('Minutes', 'fpe');
 
         return $minutes ? "$minutes $label" : null;
     }
@@ -648,9 +648,9 @@ final class FPEvents extends Singleton
         $now = current_datetime();
 
         $relativeDay = match (true) {
-            $this->isSameDay($date, $now) => __('Today', 'festival-perspectives-events'),
-            $this->isSameDay($date, $now->modify('- 1 day')) => __('Yesterday', 'festival-perspectives-events'),
-            $this->isSameDay($date, $now->modify('+ 1 day')) => __('Tomorrow', 'festival-perspectives-events'),
+            $this->isSameDay($date, $now) => __('Today', 'fpe'),
+            $this->isSameDay($date, $now->modify('- 1 day')) => __('Yesterday', 'fpe'),
+            $this->isSameDay($date, $now->modify('+ 1 day')) => __('Tomorrow', 'fpe'),
             default => null,
         };
 
@@ -811,12 +811,12 @@ final class FPEvents extends Singleton
 
         switch (get_current_screen()?->post_type) {
             case PostTypes::EVENT:
-                $newColumns['acfe:location'] = __('Location', 'festival-perspectives-events');
-                $newColumns['acfe:dates'] = __('Dates', 'festival-perspectives-events');
+                $newColumns['acfe:location'] = __('Location', 'fpe');
+                $newColumns['acfe:dates'] = __('Dates', 'fpe');
                 break;
             case PostTypes::RECURRENCE:
-                $newColumns['acfe:location'] = __('Location', 'festival-perspectives-events');
-                $newColumns['acfe:date_and_time'] = __('Date', 'festival-perspectives-events');
+                $newColumns['acfe:location'] = __('Location', 'fpe');
+                $newColumns['acfe:date_and_time'] = __('Date', 'fpe');
                 break;
         }
 
