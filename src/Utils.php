@@ -6,6 +6,7 @@ namespace Hirasso\WP\FPEvents;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use InvalidArgumentException;
+use RuntimeException;
 use WP_CLI;
 use WP_Post;
 use WP_Query;
@@ -13,7 +14,40 @@ use wpdb;
 
 final class Utils extends Singleton
 {
-    protected function __construct() {}
+    protected function __construct()
+    {
+        $this->addHooks();
+    }
+
+    private function addHooks(): void
+    {
+        add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
+    }
+
+    /**
+     * Inject the custom GroupByMetaClause into WP posts clauses
+     */
+    private function applyGroupByClause(array $clauses, WP_Query $query): array
+    {
+        /** @var ?GroupByMetaClause $groupByClause */
+        $groupByClause = $query->get('acfe:groupby-clause');
+
+        if (!$groupByClause) {
+            return $clauses;
+        }
+
+        /** Only apply the clause once */
+        $query->set('acfe:groupby-clause', '');
+
+        $alias = collect($query->meta_query->get_clauses())
+            ->first(fn($clause) => $clause['key'] === $groupByClause->key)['alias']
+            ?? throw new RuntimeException("No post clause alias found for '{$groupByClause->key}'");
+
+        $clauses['fields'] = str_replace('{alias}', $alias, $groupByClause->expression);
+        $clauses['groupby'] = $groupByClause->groupby;
+
+        return $clauses;
+    }
 
     /**
      * Access the global wpdb instance
@@ -43,52 +77,32 @@ final class Utils extends Singleton
         string|array $postTypes = PostTypes::EVENT,
         string|array $postStatus = 'publish',
     ): array {
-        $wpdb = $this->wpdb();
+        $results = $this->unfiltered(function () use ($postStatus, $postTypes) {
 
-        $postTypes = collect($postTypes)
-            ->filter($this->isFilledString(...))
-            ->filter(PostTypes::postTypeIsEventOrRecurrence(...))
-            ->all();
+            add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
-        if (empty($postTypes)) {
-            return [];
-        }
+            $q = new WP_Query([
+                'post_type' => $postTypes,
+                'post_status' => $postStatus,
+                'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
+                'meta_query' => [
+                    EventFields::DATE_AND_TIME => [
+                        'key' => EventFields::DATE_AND_TIME,
+                        'compare' => 'exists',
+                    ],
+                ],
+                'acfe:groupby-clause' => new GroupByMetaClause(
+                    key: EventFields::DATE_AND_TIME,
+                    groupby: 'year',
+                    expression: 'YEAR({alias}.meta_value) as year',
+                ),
+            ]);
+            return $q->posts;
+        });
 
-        $postStati = collect($postStatus)
-            ->filter($this->isFilledString(...))
-            ->all();
-
-        $metaKey = EventFields::DATE_AND_TIME;
-
-        $placeholders = fn(array $values) => collect($values)
-            ->map(fn() => '%s')
-            ->implode(', ');
-
-        $statusClause = !empty($postStati)
-            ? "AND p.post_status IN ({$placeholders($postStati)})"
-            : '';
-
-        $query = $wpdb->prepare(
-            <<<SQL
-            SELECT DISTINCT YEAR(pm.meta_value)
-            FROM {$wpdb->posts} p
-            INNER JOIN {$wpdb->postmeta} pm
-                ON pm.post_id = p.ID
-                AND pm.meta_key = '%s'
-            WHERE p.post_type IN ({$placeholders($postTypes)})
-            {$statusClause}
-            ORDER BY pm.meta_value DESC
-            SQL,
-            $metaKey,
-            ...[
-                ...$postTypes,
-                ...$postStati,
-            ],
-        );
-
-        return collect($wpdb->get_col($query))
+        return collect($results)
+            ->pluck('year')
             ->map($this->parseYear(...))
-            ->filter()
             ->all();
     }
 
@@ -97,19 +111,9 @@ final class Utils extends Singleton
      */
     public function getLastYearWithEvents(WP_Query $query): ?string
     {
-        /** @var list<string> $postStatus */
-        $postStatus = collect($query->get('post_status'))
-            ->filter($this->isFilledString(...))
-            ->values()
-            ->all();
-
-        if (!is_admin() && empty($postStatus)) {
-            $postStatus = ['publish'];
-        }
-
         return $this->getYearsWithEvents(
             $query->get('post_type'),
-            $postStatus,
+            $query->get('post_status'),
         )[0] ?? null;
     }
 

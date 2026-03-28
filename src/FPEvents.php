@@ -51,7 +51,6 @@ final class FPEvents extends Singleton
         add_filter('term_link', [$this, 'term_link'], 10, 2);
         add_filter('relevanssi_hits_filter', [$this, 'relevanssi_hits_filter'], 10, 2);
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
-        add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
         $this->setupGarbageCollector();
     }
@@ -566,32 +565,6 @@ final class FPEvents extends Singleton
             ->map(fn($group, $title) => new GroupedEvents(title: $title, posts: $group->all()))
             ->values()
             ->all();
-    }
-
-    /**
-     * Inject the custom GroupByMetaClause into WP posts clauses
-     */
-    public function applyGroupByClause(array $clauses, WP_Query $query): array
-    {
-        /** @var ?GroupByMetaClause $groupByClause */
-        $groupByClause = $query->get('acfe:groupby-clause');
-
-        if (!$groupByClause) {
-            return $clauses;
-        }
-
-        /** Only apply the clause once */
-        $query->set('acfe:groupby-clause', '');
-
-        $alias = collect($query->meta_query->get_clauses())
-            ->map(fn($clause) => $clause['alias'])
-            ->get($groupByClause->key)
-            ?? throw new Exception("No post clause alias found for '{$groupByClause->key}'");
-
-        $clauses['fields'] = str_replace('{alias}', $alias, $groupByClause->expression);
-        $clauses['groupby'] = $groupByClause->groupby;
-
-        return $clauses;
     }
 
     /**
