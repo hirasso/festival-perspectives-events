@@ -18,9 +18,4 @@ final readonly class PostTypes
         $all = [self::EVENT, self::RECURRENCE, self::LOCATION];
         return array_combine($all, $all);
     }
-
-    public static function postTypeIsEventOrRecurrence(string $postType): bool
-    {
-        return in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true);
-    }
 }

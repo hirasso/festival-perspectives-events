@@ -68,22 +68,42 @@ final class Utils extends Singleton
     }
 
     /**
-     * Get all years for which events exist
-     *
-     * @param string|list<string> $postStatus
-     * @return list<string>
+     * Check if a query is for events and/or
      */
-    public function getYearsWithEvents(
-        string|array $postTypes = PostTypes::EVENT,
-        string|array $postStatus = 'publish',
-    ): array {
-        $results = $this->unfiltered(function () use ($postStatus, $postTypes) {
+    public function isEventQuery(WP_Query $query): bool
+    {
+        $post_type = $query->get('post_type');
 
+        // Normalize to a sorted array
+        $types = is_array($post_type) ? $post_type : [ $post_type ];
+        sort($types);
+
+        $allowed = [
+            [ PostTypes::EVENT ],
+            [ PostTypes::RECURRENCE ],
+            [ PostTypes::EVENT, PostTypes::RECURRENCE ], // already sorted
+        ];
+
+        return in_array($types, $allowed, true);
+    }
+
+    /**
+     * Get all years for which events exist
+     */
+    public function getYearsWithEvents(WP_Query $query): array
+    {
+        if (!$this->isEventQuery($query)) {
+            return [];
+        }
+
+        $results = $this->unfiltered(function () use ($query) {
             add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
             $q = new WP_Query([
-                'post_type' => $postTypes,
-                'post_status' => $postStatus,
+                'post_type' => $query->get('post_type'),
+                'post_status' => $query->get('post_status'),
+                /** Respect the current polylang language, if set: */
+                'lang' => $query->get('lang'),
                 'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
                 'meta_query' => [
                     EventFields::DATE_AND_TIME => [
@@ -97,6 +117,7 @@ final class Utils extends Singleton
                     expression: 'YEAR({alias}.meta_value) as year',
                 ),
             ]);
+
             return $q->posts;
         });
 
@@ -104,17 +125,6 @@ final class Utils extends Singleton
             ->pluck('year')
             ->map($this->parseYear(...))
             ->all();
-    }
-
-    /**
-     * Get the last year that contains posts from the status
-     */
-    public function getLastYearWithEvents(WP_Query $query): ?string
-    {
-        return $this->getYearsWithEvents(
-            $query->get('post_type'),
-            $query->get('post_status'),
-        )[0] ?? null;
     }
 
     /**
@@ -146,7 +156,8 @@ final class Utils extends Singleton
             ?? $this->parseYear($query->get('year'))
             ?? $this->parseYear($query->get('s'))
             /** fall back to the last year with events */
-            ?? $this->getLastYearWithEvents($query);
+            ?? $this->getYearsWithEvents($query)[0]
+            ?? null;
     }
 
     /**
@@ -332,7 +343,15 @@ final class Utils extends Singleton
         if (!$postID = $this->getPostID($post)) {
             return false;
         }
-        return PostTypes::postTypeIsEventOrRecurrence(get_post_type($postID));
+        return $this->isEventPostType(get_post_type($postID));
+    }
+
+    /**
+     * Check if a post is an event
+     */
+    public function isEventPostType(string $postType): bool
+    {
+        return in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true);
     }
 
     /**

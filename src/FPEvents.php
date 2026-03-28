@@ -866,15 +866,12 @@ final class FPEvents extends Singleton
      */
     private function renderYearFilter(string $postType): void
     {
-        if (!PostTypes::postTypeIsEventOrRecurrence($postType)) {
+        if (!$this->utils->isEventPostType($postType)) {
             return;
         }
 
         $query = $this->utils->getMainQuery();
-        $years = $this->utils->getYearsWithEvents(
-            $postType,
-            $query->get('post_status'),
-        );
+        $years = $this->utils->getYearsWithEvents($query);
 
         if (count($years) < 1) {
             return;
@@ -938,7 +935,7 @@ final class FPEvents extends Singleton
      */
     public function getExpiredEvents(string $postType = PostTypes::EVENT): array
     {
-        if (!PostTypes::postTypeIsEventOrRecurrence($postType)) {
+        if (!$this->utils->isEventPostType($postType)) {
             throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
         }
 

@@ -22,11 +22,20 @@ class UtilsTest extends TestCase
     }
 
     /**
-     * Alters the query to request pages
+     * Alters the query to query events way in the past
      */
     private function modify_query(WP_Query $query): void
     {
-        $query->set('post_type', 'page');
+        $query->query_vars = array_replace_recursive($query->query_vars, [
+            'meta_query' => [
+                EventFields::DATE_AND_TIME => [
+                    'key' => EventFields::DATE_AND_TIME,
+                    'type' => 'DATETIME',
+                    'compare' => '<',
+                    'value' => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2020-01-01')),
+                ],
+            ],
+        ]);
     }
 
     public function test_unfiltered_query()
@@ -72,6 +81,27 @@ class UtilsTest extends TestCase
 
         add_action('pre_get_posts', $this->modify_query(...));
 
-        $this->assertSame($this->utils->getYearsWithEvents(PostTypes::EVENT), ["2030", "2025", "2024"]);
+        $this->assertSame(
+            $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT])),
+            ["2030", "2025", "2024"],
+        );
+    }
+
+    public function test_get_years_with_events_only_published()
+    {
+        $this->factory()->post->create([
+            'post_type' => PostTypes::EVENT,
+            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2030-01-01'))],
+            'post_status' => 'draft',
+        ]);
+        $this->factory()->post->create([
+            'post_type' => PostTypes::EVENT,
+            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2025-01-01'))],
+        ]);
+
+        $this->assertSame(
+            $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT])),
+            ["2025"],
+        );
     }
 }
