@@ -102,13 +102,14 @@ final class Utils extends Singleton
             $q = new WP_Query([
                 'post_type' => $query->get('post_type'),
                 'post_status' => $query->get('post_status'),
+                'posts_per_page' => -1,
                 /** Respect the current polylang language, if set: */
                 'lang' => $query->get('lang'),
                 'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
                 'meta_query' => [
                     EventFields::DATE_AND_TIME => [
                         'key' => EventFields::DATE_AND_TIME,
-                        'compare' => 'exists',
+                        'compare' => 'EXISTS',
                     ],
                 ],
                 'acfe:groupby-clause' => new GroupByMetaClause(
@@ -124,6 +125,7 @@ final class Utils extends Singleton
         return collect($results)
             ->pluck('year')
             ->map($this->parseYear(...))
+            ->values()
             ->all();
     }
 

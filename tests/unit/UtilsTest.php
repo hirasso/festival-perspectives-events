@@ -22,7 +22,8 @@ class UtilsTest extends TestCase
     }
 
     /**
-     * Alters the query to query events way in the past
+     * Alters the query to query events way in the past.
+     * This should be IGNORED because of the `unfiltered` function
      */
     private function modify_query(WP_Query $query): void
     {
@@ -58,33 +59,23 @@ class UtilsTest extends TestCase
 
     public function test_get_years_with_events()
     {
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2030-01-01'))],
-        ]);
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2030-02-01'))],
-        ]);
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2030-03-01'))],
-        ]);
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2025-01-01'))],
-        ]);
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2024-01-01'))],
-        ]);
+        $events = $this->factory()->post->create_many(20, ['post_type' => PostTypes::EVENT]);
+        foreach ($events as $index => $event) {
+            $year = 2030 - $index;
+            update_post_meta(
+                $event,
+                EventFields::DATE_AND_TIME,
+                date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime("$year-01-01")),
+            );
+        }
 
         add_action('pre_get_posts', $this->modify_query(...));
 
-        $this->assertSame(
-            $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT])),
-            ["2030", "2025", "2024"],
-        );
+        $result = $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT]));
+
+        $expected = collect(range(2030, 2011))->map(strval(...))->all();
+
+        $this->assertSame($result, $expected);
     }
 
     public function test_get_years_with_events_only_published()
