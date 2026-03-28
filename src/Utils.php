@@ -75,7 +75,7 @@ final class Utils extends Singleton
         $post_type = $query->get('post_type');
 
         // Normalize to a sorted array
-        $types = is_array($post_type) ? $post_type : [ $post_type ];
+        $types = (array) $post_type;
         sort($types);
 
         $allowed = [
