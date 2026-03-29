@@ -29,13 +29,21 @@ function factory(): WP_UnitTest_Factory
 }
 
 /**
+ * Convert any date string into a mysql date string
+ */
+function mysqlDate(string $dateString): string
+{
+    return date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime($dateString));
+}
+
+/**
  * Create an event
  */
 function createEvent(string $dateString, array $args = []): WP_Post|WP_Error
 {
     $args = array_replace_recursive([
         'post_type' => PostTypes::EVENT,
-        'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime($dateString))],
+        'meta_input' => [EventFields::DATE_AND_TIME => mysqlDate($dateString)],
     ], $args);
 
     return factory()->post->create_and_get($args);

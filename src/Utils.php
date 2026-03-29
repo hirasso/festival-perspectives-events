@@ -68,31 +68,11 @@ final class Utils extends Singleton
     }
 
     /**
-     * Check if a query is for events and/or
-     */
-    public function isEventQuery(WP_Query $query): bool
-    {
-        $post_type = $query->get('post_type');
-
-        // Normalize to a sorted array
-        $types = (array) $post_type;
-        sort($types);
-
-        $allowed = [
-            [ PostTypes::EVENT ],
-            [ PostTypes::RECURRENCE ],
-            [ PostTypes::EVENT, PostTypes::RECURRENCE ], // already sorted
-        ];
-
-        return in_array($types, $allowed, true);
-    }
-
-    /**
      * Get all years for which events exist
      */
     public function getYearsWithEvents(WP_Query $query): array
     {
-        if (!$this->isEventQuery($query)) {
+        if (!$this->isEventPostType($query->get('post_type'))) {
             return [];
         }
 
@@ -351,9 +331,19 @@ final class Utils extends Singleton
     /**
      * Check if a post is an event
      */
-    public function isEventPostType(string $postType): bool
+    public function isEventPostType(string|array $postType): bool
     {
-        return in_array($postType, [PostTypes::EVENT, PostTypes::RECURRENCE], true);
+        // Normalize to a sorted array
+        $types = (array) $postType;
+        sort($types);
+
+        $allowed = [
+            [ PostTypes::EVENT ],
+            [ PostTypes::RECURRENCE ],
+            [ PostTypes::EVENT, PostTypes::RECURRENCE ], // already sorted
+        ];
+
+        return in_array($types, $allowed, true);
     }
 
     /**
@@ -406,5 +396,34 @@ final class Utils extends Singleton
         $wp_filter = $__wp_filters;
 
         return $result;
+    }
+
+    /**
+     * Get all events in the past.
+     *
+     * @return list<int>
+     */
+    public function getPastRecurrences(): array
+    {
+        $runQuery = fn() => new WP_Query([
+            'post_type' => PostTypes::RECURRENCE,
+            'fields' => 'ids',
+            // 'lang' => '',
+            'post_status' => 'any',
+            'posts_per_page' => -1,
+            'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
+            'meta_query' => [
+                EventFields::DATE_AND_TIME => [
+                    'key' => EventFields::DATE_AND_TIME,
+                    'type' => 'DATETIME',
+                    'value' => current_time('mysql'),
+                    'compare' => '<',
+                ],
+            ],
+        ]);
+
+        return collect($this->unfiltered($runQuery)->posts)
+            ->map(absint(...))
+            ->all();
     }
 }

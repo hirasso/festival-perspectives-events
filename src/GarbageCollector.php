@@ -6,6 +6,7 @@ namespace Hirasso\WP\FPEvents;
 
 use Exception;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Deletes data that is not required anymore
@@ -14,9 +15,13 @@ use Psr\Log\LoggerInterface;
  */
 final class GarbageCollector
 {
+    private Utils $utils;
+
     public function __construct(
         private LoggerInterface $logger,
-    ) {}
+    ) {
+        $this->utils = Utils::instance();
+    }
 
     /**
      * Log a critical event (also exits)
@@ -38,9 +43,9 @@ final class GarbageCollector
     public function run()
     {
         try {
-            $this->logger->info("Deleting expired event recurrences...");
-            $deletedCount = $this->deleteAllExpiredRecurrences();
-            $this->success(sprintf('Deleted %d expired event recurrences', $deletedCount));
+            $this->logger->info("Deleting past event recurrences...");
+            $deletedCount = $this->deletePastRecurrences();
+            $this->success(sprintf('Deleted %d recurrences', $deletedCount));
         } catch (Exception $e) {
             $this->critical($e->getMessage());
         }
@@ -49,14 +54,17 @@ final class GarbageCollector
     /**
      * Delete expired recurrences. Return the count.
      */
-    private function deleteAllExpiredRecurrences(): int
+    private function deletePastRecurrences(): int
     {
-        $expiredRecurrences = fpe()->getExpiredEvents(PostTypes::RECURRENCE);
+        $recurrences = $this->utils->getPastRecurrences();
 
-        foreach ($expiredRecurrences as $postID) {
+        foreach ($recurrences as $postID) {
+            if (get_post_type($postID) !== PostTypes::RECURRENCE) {
+                throw new RuntimeException(sprintf('Not a recurrence: #%d', (int) $postID));
+            }
             wp_delete_post($postID, true);
         }
 
-        return count($expiredRecurrences);
+        return count($recurrences);
     }
 }

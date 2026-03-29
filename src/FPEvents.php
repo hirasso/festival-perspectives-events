@@ -9,7 +9,6 @@ use Exception;
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FieldGroups\LocationFields;
 use Hirasso\WP\FPEvents\Logger\LoggerFactory;
-use InvalidArgumentException;
 use RuntimeException;
 use WP_CLI;
 use WP_Post;
@@ -937,35 +936,6 @@ final class FPEvents extends Singleton
 
         return collect($this->getEventDates($post))
             ->every(fn($eventDate) => $this->utils->isInThePast($eventDate->toMySQLString()));
-    }
-
-    /**
-     * Get all expired events.
-     * Uses a raw SQL query to make sure all candidates are found.
-     *
-     * @return list<int>
-     */
-    public function getExpiredEvents(string $postType = PostTypes::EVENT): array
-    {
-        if (!$this->utils->isEventPostType($postType)) {
-            throw new InvalidArgumentException(sprintf('Invalid post type requested: %s', $postType));
-        }
-
-        $wpdb = $this->utils->wpdb();
-
-        $results = $wpdb->get_col($wpdb->prepare(
-            "SELECT p.ID
-             FROM {$wpdb->posts} p
-             INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-             WHERE p.post_type = %s
-               AND pm.meta_key = %s
-               AND CAST(pm.meta_value AS DATE) < %s",
-            $postType,
-            EventFields::DATE_AND_TIME,
-            current_time('Y') . '-01-01',
-        ));
-
-        return collect($results)->map(absint(...))->all();
     }
 
     /**

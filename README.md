@@ -64,7 +64,7 @@ You can hook into the action to perform your custom archiving jobs:
 
 ```php
 add_action('fpe/run_garbage_collector', function() {
-  foreach (fpe()->getExpiredEvents() as $postID) {
+  foreach (fpe()->utils->getEventsInThePast() as $postID) {
       /** for example: remove filters from expired events */
       removeEventFilters($postID);
   }

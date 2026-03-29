@@ -4,19 +4,9 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\Tests\Integration;
 
+use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Query;
-
-/**
- * Alter the query so that it won't return anything
- * This should be IGNORED because of the `unfiltered` function
- */
-function modifyQuery(WP_Query $query): void
-{
-    $query->query_vars = array_replace_recursive($query->query_vars, [
-        'meta_key' => 'something-nonexisting',
-    ]);
-}
 
 test('can run an unfiltered query', function () {
     factory()->post->create_many(3);
@@ -25,7 +15,7 @@ test('can run an unfiltered query', function () {
 
     expect($queryPosts())->toHaveCount(3);
 
-    add_action('pre_get_posts', modifyQuery(...));
+    add_action('pre_get_posts', fn($query) => $query->set('meta_key', 'something-nonexisting'));
 
     /** 1. the hook should be active */
     expect($queryPosts())->toHaveCount(0);
@@ -43,7 +33,7 @@ test('gets unfiltered years with events', function () {
     }
 
     /** would modify the query, should be ignored */
-    add_action('pre_get_posts', modifyQuery(...));
+    add_action('pre_get_posts', fn($query) => $query->set('meta_key', 'something-nonexisting'));
 
     $result = utils()->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT]));
     expect($result)->toEqual($years);
@@ -66,4 +56,27 @@ test('adjusts the post status according to admin/frontend', function () {
     expect($years)->toEqual(["2025"]);
 
     set_current_screen('front');
+});
+
+test('get unfiltered past recurrences', function () {
+    $dates = collect([
+        '+ 2 months',
+        '+ 1 month',
+        '- 1 month',
+        '- 2 months',
+    ])->map(mysqlDate(...));
+
+    $dates->map(fn($date) => createEvent($date, [
+        'post_type' => PostTypes::RECURRENCE,
+        'post_status' => 'draft',
+    ])->ID);
+
+    /** this should be ignored */
+    add_action('pre_get_posts', fn($query) => $query->set('meta_key', 'something-nonexisting'));
+
+    $result = collect(utils()->getPastRecurrences());
+    expect($result)->toHaveCount(2);
+
+    expect($result->map(fn($id) => get_field(EventFields::DATE_AND_TIME, $id))->all())
+        ->toEqual($dates->splice(2)->all());
 });
