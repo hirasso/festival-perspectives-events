@@ -321,7 +321,7 @@ final class Recurrences extends Singleton
     }
 
     /**
-     * Create recurrences from an event
+     * Update recurrences for an event, based on it's further dates
      *
      * ## OPTIONS
      *
