@@ -380,7 +380,7 @@ final class Recurrences extends Singleton
             'post_type' => PostTypes::RECURRENCE,
             'post_parent' => $postID,
             'posts_per_page' => -1,
-            'post_status' => get_post_status($postID),
+            'post_status' => 'any',
             'fields' => 'ids',
         ]));
     }

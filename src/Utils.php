@@ -405,10 +405,10 @@ final class Utils extends Singleton
      */
     public function getPastRecurrences(): array
     {
-        $runQuery = fn() => new WP_Query([
+        $getPosts = fn() => get_posts([
             'post_type' => PostTypes::RECURRENCE,
             'fields' => 'ids',
-            // 'lang' => '',
+            'lang' => '',
             'post_status' => 'any',
             'posts_per_page' => -1,
             'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
@@ -422,7 +422,7 @@ final class Utils extends Singleton
             ],
         ]);
 
-        return collect($this->unfiltered($runQuery)->posts)
+        return collect($this->unfiltered($getPosts))
             ->map(absint(...))
             ->all();
     }
