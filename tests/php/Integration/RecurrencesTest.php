@@ -8,8 +8,6 @@ use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FPEvents;
 use WP_Post;
 
-uses(TestCase::class);
-
 /** @return array{0: WP_Post, 1: WP_Post} */
 function createTranslatedEvent(): array
 {

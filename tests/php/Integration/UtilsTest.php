@@ -7,9 +7,6 @@ namespace Hirasso\WP\FPEvents\Tests\Integration;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Query;
 
-uses(TestCase::class);
-
-
 /**
  * Alter the query so that it won't return anything
  * This should be IGNORED because of the `unfiltered` function
@@ -22,7 +19,7 @@ function modifyQuery(WP_Query $query): void
 }
 
 test('can run an unfiltered query', function () {
-    factory()->post->create_many(3);
+    $this->factory->post->create_many(3);
 
     $queryPosts = fn() => (new WP_Query(['post_type' => 'any']))->posts;
 
