@@ -11,6 +11,9 @@ use WP_Error;
 use WP_Post;
 use Yoast\WPTestUtils\WPIntegration\TestCase;
 
+/**
+ * Provides helper functions for test cases
+ */
 class FPEventsTestCase extends TestCase
 {
     protected function createEvent(string $dateString, array $args = []): WP_Post|WP_Error

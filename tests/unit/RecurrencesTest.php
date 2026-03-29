@@ -6,11 +6,9 @@ namespace Hirasso\WP\FPEvents\Tests\Unit;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FPEvents;
-use Hirasso\WP\FPEvents\PostTypes;
 use WP_Post;
-use Yoast\WPTestUtils\WPIntegration\TestCase;
 
-class RecurrencesTest extends TestCase
+class RecurrencesTest extends FPEventsTestCase
 {
     public function setUp(): void
     {
@@ -23,43 +21,22 @@ class RecurrencesTest extends TestCase
     }
 
     /** @return array{0: WP_Post, 1: WP_Post} */
-    private function createEvent(): array
+    private function createTranslatedEvent(): array
     {
-        $location = $this->factory()->post->create_and_get([
-            'post_type' => PostTypes::LOCATION,
-            'meta_input' => [
-                'acfe_location_address' => "Test Street 1\n12345 Test City",
-                'acfe_location_area' => 'Test Area',
-            ],
-        ]);
-
-        $eventArgs = [
-            'post_status' => 'publish',
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [
-                EventFields::DATE_AND_TIME => \date(FPEvents::MYSQL_DATE_TIME_FORMAT, \strtotime('next saturday 10:00')),
-                EventFields::LOCATION_ID => $location->ID,
-            ],
-        ];
-
         $languageTermIDs = array_combine(
             pll_languages_list(['fields' => 'slug']),
             pll_languages_list(['fields' => 'term_id']),
         );
 
-        $de = $this->factory()->post->create_and_get(
-            array_replace_recursive($eventArgs, [
-                'post_title' => 'Event (de)',
-                'tax_input' => ['language' => $languageTermIDs['de']],
-            ]),
-        );
+        $de = $this->createEvent('next saturday 10:00', [
+            'post_title' => 'Event (de)',
+            'tax_input' => ['language' => $languageTermIDs['de']],
+        ]);
 
-        $fr = $this->factory()->post->create_and_get(
-            array_replace_recursive($eventArgs, [
-                'post_title' => 'Event (fr)',
-                'tax_input' => ['language' => $languageTermIDs['fr']],
-            ]),
-        );
+        $fr = $this->createEvent('next saturday 10:00', [
+            'post_title' => 'Event (fr)',
+            'tax_input' => ['language' => $languageTermIDs['fr']],
+        ]);
 
         pll_set_post_language($de->ID, 'de');
         pll_set_post_language($fr->ID, 'fr');
@@ -90,7 +67,7 @@ class RecurrencesTest extends TestCase
             '+40 days 13:00:00',
             '+60 days 16:00:00',
         ];
-        [$event, $eventFR] = $this->createEvent();
+        [$event, $eventFR] = $this->createTranslatedEvent();
         fpe()->setFurtherDates($event, $furtherDates);
 
         $recurrences = fpe()->recurrences->getRecurrences($event->ID);
@@ -116,7 +93,7 @@ class RecurrencesTest extends TestCase
 
     public function test_does_not_create_recurrences_for_events_in_the_past(): void
     {
-        [$event] = $this->createEvent();
+        [$event] = $this->createTranslatedEvent();
 
         fpe()->setFurtherDates($event, [
             'yesterday',
