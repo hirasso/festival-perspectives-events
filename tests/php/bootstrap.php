@@ -6,7 +6,7 @@ use Hirasso\WP\FPEvents\PostTypes;
 
 $rootDir = \dirname(\dirname(__DIR__));
 
-/** Load wp-env's config file in the container, but still use our own wp-phpunit */
+/** Load wp-env's config file in the container, but still use our own wp-phpunit via composer */
 \putenv('WP_PHPUNIT__TESTS_CONFIG=/wordpress-phpunit/wp-tests-config.php');
 
 /** Composer autoloader must be loaded before WP_PHPUNIT__DIR will be available */

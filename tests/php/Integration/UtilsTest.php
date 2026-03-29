@@ -19,7 +19,7 @@ function modifyQuery(WP_Query $query): void
 }
 
 test('can run an unfiltered query', function () {
-    $this->factory->post->create_many(3);
+    factory()->post->create_many(3);
 
     $queryPosts = fn() => (new WP_Query(['post_type' => 'any']))->posts;
 
