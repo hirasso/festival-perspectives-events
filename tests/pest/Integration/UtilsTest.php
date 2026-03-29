@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Unit;
+namespace Hirasso\WP\FPEvents\Tests\Integration;
 
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Query;
 
-uses(\WP_UnitTestCase::class);
+uses(TestCase::class);
+
 
 /**
  * Alter the query so that it won't return anything

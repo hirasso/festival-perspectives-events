@@ -51,6 +51,9 @@ tests_add_filter('plugins_loaded', function () {
     ]);
 });
 
+/** Manually load the Pest setup file */
+require_once(__DIR__ . "/Pest.php");
+
 /** Start up the WP testing environment. */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';
 

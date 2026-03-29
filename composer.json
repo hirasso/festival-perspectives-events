@@ -20,11 +20,11 @@
     "filp/whoops": "^2.18",
     "laravel/pint": "^1.27",
     "mrpunyapal/peststan": "^0.1.5",
-    "pestphp/pest": "^1.23",
+    "pestphp/pest": "^3.0",
     "phpstan/extension-installer": "^1.4",
     "phpstan/phpstan": "^2.1",
     "phpstan/phpstan-phpunit": "^2.0",
-    "phpunit/phpunit": "^8.5 || ^9.6",
+    "phpunit/phpunit": "^11.0",
     "roots/wordpress": "^6.9",
     "spatie/phpunit-watcher": "^1.23",
     "symfony/var-dumper": "^7.4",
@@ -59,7 +59,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Hirasso\\WP\\FPEvents\\Tests\\Unit\\": "tests/unit"
+      "Hirasso\\WP\\FPEvents\\Tests\\": "tests/pest"
     }
   },
   "config": {

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
-  bootstrap="tests/unit/bootstrap.php"
+  bootstrap="tests/pest/bootstrap.php"
   colors="true">
   <testsuites>
     <testsuite name="Test Suite">
-        <directory suffix="Test.php">./tests/unit</directory>
+        <directory suffix="Test.php">./tests/pest</directory>
     </testsuite>
   </testsuites>
   <coverage>

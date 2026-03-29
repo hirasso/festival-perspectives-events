@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Unit;
+namespace Hirasso\WP\FPEvents\Tests\Integration;
 
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FPEvents;
 use WP_Post;
 
-uses(\WP_UnitTestCase::class);
+uses(TestCase::class);
 
 /** @return array{0: WP_Post, 1: WP_Post} */
 function createTranslatedEvent(): array
