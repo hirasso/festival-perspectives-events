@@ -12,32 +12,32 @@ msgstr ""
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: fpe\n"
 
-#: src/FPEvents.php:610
+#: src/FPEvents.php:622
 msgid "Minutes"
 msgstr ""
 
-#: src/FPEvents.php:647
+#: src/FPEvents.php:659
 msgid "Today"
 msgstr ""
 
-#: src/FPEvents.php:648
+#: src/FPEvents.php:660
 msgid "Yesterday"
 msgstr ""
 
-#: src/FPEvents.php:649
+#: src/FPEvents.php:661
 msgid "Tomorrow"
 msgstr ""
 
-#: src/FPEvents.php:810
-#: src/FPEvents.php:814
+#: src/FPEvents.php:822
+#: src/FPEvents.php:826
 msgid "Location"
 msgstr ""
 
-#: src/FPEvents.php:811
+#: src/FPEvents.php:823
 msgid "Dates"
 msgstr ""
 
-#: src/FPEvents.php:815
+#: src/FPEvents.php:827
 msgid "Date"
 msgstr ""
 

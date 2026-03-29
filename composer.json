@@ -94,7 +94,7 @@
     ],
     "analyse": "phpstan analyse --memory-limit=2G",
     "format": "pint",
-    "test": "pest --coverage-text",
+    "test": "pest",
     "test:watch": [
       "Composer\\Config::disableProcessTimeout",
       "phpunit-watcher watch"

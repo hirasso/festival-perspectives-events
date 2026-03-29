@@ -29,9 +29,21 @@ final class FPEvents extends Singleton
 
     protected function __construct()
     {
+        if (!did_action('after_setup_theme')) {
+            add_action('after_setup_theme', $this->init(...), 1);
+            return;
+        }
+
+        $this->init();
+    }
+
+    /**
+     * Get things going. Runs on the after_setup_theme hook.
+     */
+    private function init()
+    {
         $this->utils = Utils::instance();
         $this->addHooks();
-
         $this->recurrences = Recurrences::instance();
         Locations::instance();
         EventFields::instance();
