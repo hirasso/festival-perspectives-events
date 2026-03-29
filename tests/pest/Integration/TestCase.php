@@ -24,11 +24,11 @@ class TestCase extends \WP_UnitTestCase
         add_action('deprecated_hook_run', [$this, 'deprecated_function_run'], 10, 4);
         add_action('doing_it_wrong_run', [$this, 'doing_it_wrong_run'], 10, 3);
 
-        add_action('deprecated_function_trigger_error', '__return_false');
-        add_action('deprecated_argument_trigger_error', '__return_false');
-        add_action('deprecated_class_trigger_error', '__return_false');
-        add_action('deprecated_file_trigger_error', '__return_false');
-        add_action('deprecated_hook_trigger_error', '__return_false');
-        add_action('doing_it_wrong_trigger_error', '__return_false');
+        add_filter('deprecated_function_trigger_error', '__return_false');
+        add_filter('deprecated_argument_trigger_error', '__return_false');
+        add_filter('deprecated_class_trigger_error', '__return_false');
+        add_filter('deprecated_file_trigger_error', '__return_false');
+        add_filter('deprecated_hook_trigger_error', '__return_false');
+        add_filter('doing_it_wrong_trigger_error', '__return_false');
     }
 }
