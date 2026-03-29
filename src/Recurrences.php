@@ -342,12 +342,9 @@ final class Recurrences extends Singleton
         $updateAll = count($args) === 1 && $args[0] === 'all';
 
         $postIDs = collect(match (true) {
-            $updateAll => $this->utils->unfiltered(fn() => get_posts([
+            $updateAll => $this->utils->getPostsUnfiltered([
                 'post_type' => PostTypes::EVENT,
-                'posts_per_page' => -1,
-                'post_status' => 'any',
-                'fields' => 'ids',
-            ])),
+            ]),
             default => $args,
         });
 
@@ -376,13 +373,10 @@ final class Recurrences extends Singleton
             return [];
         }
 
-        return $this->utils->unfiltered(fn() => get_posts([
+        return $this->utils->getPostsUnfiltered([
             'post_type' => PostTypes::RECURRENCE,
             'post_parent' => $postID,
-            'posts_per_page' => -1,
-            'post_status' => 'any',
-            'fields' => 'ids',
-        ]));
+        ]);
     }
 
     /**

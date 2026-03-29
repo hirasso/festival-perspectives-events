@@ -20,7 +20,7 @@ test('can run an unfiltered query', function () {
     /** 1. the hook should be active */
     expect($queryPosts())->toHaveCount(0);
     /** 2. the hook should be skipped */
-    expect(utils()->unfiltered($queryPosts))->toHaveCount(3);
+    expect(utils()->runUnfiltered($queryPosts))->toHaveCount(3);
     /** 3. the hook should be active again */
     expect($queryPosts())->toHaveCount(0);
 });

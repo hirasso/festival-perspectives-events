@@ -54,7 +54,7 @@ msgid "Invalid date format: %s"
 msgstr ""
 
 #. translators: %d: number of events
-#: src/Recurrences.php:364
+#: src/Recurrences.php:361
 #, php-format
 msgid "Updated recurrences for %d events"
 msgstr ""

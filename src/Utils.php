@@ -76,7 +76,7 @@ final class Utils extends Singleton
             return [];
         }
 
-        $results = $this->unfiltered(function () use ($query) {
+        $results = $this->runUnfiltered(function () use ($query) {
             add_filter('posts_clauses', $this->applyGroupByClause(...), 1000, 2);
 
             $q = new WP_Query([
@@ -373,13 +373,29 @@ final class Utils extends Singleton
     }
 
     /**
+     * Get posts, unfiltered, with a few defaults
+     */
+    public function getPostsUnfiltered(array $args): array
+    {
+        $args = array_replace_recursive([
+            'fields' => 'ids',
+            'posts_per_page' => -1,
+            'lang' => null,
+            'post_status' => get_post_stati(),
+            'suppress_filters' => true,
+        ], $args);
+
+        return $this->runUnfiltered(fn() => get_posts($args));
+    }
+
+    /**
      * Run a callback while temporarily disabling all filters
      *
      * @template TReturn
      * @param callable(): TReturn $callback
      * @return TReturn
      */
-    public function unfiltered(callable $callback)
+    public function runUnfiltered(callable $callback)
     {
         global $wp_filter;
 
@@ -405,12 +421,8 @@ final class Utils extends Singleton
      */
     public function getPastRecurrences(): array
     {
-        $getPosts = fn() => get_posts([
+        return $this->getPostsUnfiltered([
             'post_type' => PostTypes::RECURRENCE,
-            'fields' => 'ids',
-            'lang' => '',
-            'post_status' => 'any',
-            'posts_per_page' => -1,
             'orderby' => [EventFields::DATE_AND_TIME => 'desc'],
             'meta_query' => [
                 EventFields::DATE_AND_TIME => [
@@ -421,9 +433,5 @@ final class Utils extends Singleton
                 ],
             ],
         ]);
-
-        return collect($this->unfiltered($getPosts))
-            ->map(absint(...))
-            ->all();
     }
 }
