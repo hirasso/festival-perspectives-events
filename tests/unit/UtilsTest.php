@@ -19,13 +19,13 @@ class UtilsTest extends FPEventsTestCase
     }
 
     /**
-     * Alters the query to query events way in the past.
+     * Alters the query so that it won't return anything
      * This should be IGNORED because of the `unfiltered` function
      */
     private function modify_query(WP_Query $query): void
     {
         $query->query_vars = array_replace_recursive($query->query_vars, [
-            'meta_key' => 'anything',
+            'meta_key' => 'something-nonexisting',
         ]);
     }
 
