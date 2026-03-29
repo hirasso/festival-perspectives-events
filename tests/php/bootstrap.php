@@ -27,7 +27,7 @@ tests_add_filter('muplugins_loaded', function () use ($rootDir) {
     /** Overwrite pll post types */
     add_filter('pll_get_post_types', PostTypes::all(...));
 
-    /** Initialize FPEvents, as if activated from a theme */
+    /** Initialize FPEvents */
     FPEvents::instance();
 }, 1);
 
