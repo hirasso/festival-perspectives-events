@@ -7,7 +7,7 @@ namespace Hirasso\WP\FPEvents\Tests\Unit;
 use Hirasso\WP\FPEvents\PostTypes;
 use WP_Query;
 
-uses(\Yoast\WPTestUtils\WPIntegration\TestCase::class);
+uses(\WP_UnitTestCase::class);
 
 /**
  * Alter the query so that it won't return anything
