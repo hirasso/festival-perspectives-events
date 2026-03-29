@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Hirasso\WP\FPEvents\Tests\Unit;
 
-use Hirasso\WP\FPEvents\FieldGroups\EventFields;
-use Hirasso\WP\FPEvents\FPEvents;
 use Hirasso\WP\FPEvents\PostTypes;
 use Hirasso\WP\FPEvents\Utils;
 use WP_Query;
-use Yoast\WPTestUtils\WPIntegration\TestCase;
 
-class UtilsTest extends TestCase
+class UtilsTest extends FPEventsTestCase
 {
     private Utils $utils;
 
@@ -28,14 +25,7 @@ class UtilsTest extends TestCase
     private function modify_query(WP_Query $query): void
     {
         $query->query_vars = array_replace_recursive($query->query_vars, [
-            'meta_query' => [
-                EventFields::DATE_AND_TIME => [
-                    'key' => EventFields::DATE_AND_TIME,
-                    'type' => 'DATETIME',
-                    'compare' => '<',
-                    'value' => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2020-01-01')),
-                ],
-            ],
+            'meta_key' => 'anything',
         ]);
     }
 
@@ -57,42 +47,39 @@ class UtilsTest extends TestCase
         $this->assertCount(0, $queryPosts());
     }
 
-    public function test_get_years_with_events()
+    public function test_get_unfiltered_years_with_events()
     {
-        $events = $this->factory()->post->create_many(20, ['post_type' => PostTypes::EVENT]);
-        foreach ($events as $index => $event) {
-            $year = 2030 - $index;
-            update_post_meta(
-                $event,
-                EventFields::DATE_AND_TIME,
-                date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime("$year-01-01")),
-            );
+        $years = collect(range(2030, 2011))->map(strval(...))->all();
+
+        foreach ($years as $year) {
+            $this->createEvent("$year-01-01");
         }
 
+        /** would modify the query, should be ignored */
         add_action('pre_get_posts', $this->modify_query(...));
 
         $result = $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT]));
-
-        $expected = collect(range(2030, 2011))->map(strval(...))->all();
-
-        $this->assertSame($result, $expected);
+        $this->assertSame($result, $years);
     }
 
-    public function test_get_years_with_events_only_published()
+    public function test_get_years_with_events_post_status()
     {
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2030-01-01'))],
-            'post_status' => 'draft',
-        ]);
-        $this->factory()->post->create([
-            'post_type' => PostTypes::EVENT,
-            'meta_input' => [EventFields::DATE_AND_TIME => date(FPEvents::MYSQL_DATE_TIME_FORMAT, strtotime('2025-01-01'))],
-        ]);
+        $this->createEvent('2030-01-01', ['post_status' => 'draft']);
+        $this->createEvent('2025-01-01', ['post_status' => 'publish']);
 
+        /** admin: include all post stati */
+        set_current_screen('edit.php');
+        $this->assertSame(
+            $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT])),
+            ["2030", "2025"],
+        );
+
+        /** frontend: exclude drafts */
+        set_current_screen('front');
         $this->assertSame(
             $this->utils->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT])),
             ["2025"],
         );
+        set_current_screen('front');
     }
 }
