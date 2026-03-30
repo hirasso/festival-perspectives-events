@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Integration;
-
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\PostTypes;
-use WP_Query;
 
 test('can run an unfiltered query', function () {
-    factory()->post->create_many(3);
+    /** @var Tests\IntegrationTestCase $this */
+    $this->factory()->post->create_many(3);
 
     $queryPosts = fn() => (new WP_Query(['post_type' => 'any']))->posts;
 

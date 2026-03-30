@@ -6,7 +6,7 @@ use Hirasso\WP\FPEvents\PostTypes;
 use Hirasso\WP\FPEvents\Recurrences;
 use Hirasso\WP\FPEvents\Utils;
 
-uses(Hirasso\WP\FPEvents\Tests\Integration\TestCase::class)->in('Integration');
+uses(Tests\IntegrationTestCase::class)->in('Integration');
 
 function recurreces()
 {

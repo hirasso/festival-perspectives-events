@@ -59,7 +59,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Hirasso\\WP\\FPEvents\\Tests\\": "tests/php"
+      "Tests\\": "tests/php"
     }
   },
   "config": {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Integration;
+namespace Tests;
 
 /**
  * Custom test case that patches WP_UnitTestCase for PHPUnit 11 compatibility.
@@ -13,7 +13,7 @@ namespace Hirasso\WP\FPEvents\Tests\Integration;
  *
  * @see https://github.com/wp-phpunit/wp-phpunit/issues/...
  */
-class TestCase extends \WP_UnitTestCase
+class IntegrationTestCase extends \WP_UnitTestCase
 {
     public function expectDeprecated(): void
     {

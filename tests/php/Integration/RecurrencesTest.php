@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\WP\FPEvents\Tests\Integration;
-
 use Hirasso\WP\FPEvents\FieldGroups\EventFields;
 use Hirasso\WP\FPEvents\FPEvents;
-use WP_Post;
+
+use function PHPUnit\Framework\assertArrayHasKey;
+use function PHPUnit\Framework\assertCount;
+use function PHPUnit\Framework\assertEquals;
+use function PHPUnit\Framework\assertTrue;
 
 /** @return array{0: WP_Post, 1: WP_Post} */
 function createTranslatedEvent(): array
@@ -35,20 +37,20 @@ function createTranslatedEvent(): array
     ]);
 
     /** post IDs should be constant between tests */
-    expect($translations)->toHaveKey('de');
-    expect($translations)->toHaveKey('fr');
+    assertArrayHasKey('de', $translations);
+    assertArrayHasKey('fr', $translations);
 
     return [$de, $fr];
 }
 
 test('has polylang languages active', function () {
-    expect(pll_languages_list())->toEqual(['de', 'fr']);
+    assertEquals(['de', 'fr'], pll_languages_list());
 });
 
 test('has required plugins', function () {
-    expect(function_exists('fpe'))->toBeTrue();
-    expect(defined('ACF'))->toBeTrue();
-    expect(function_exists('pll_get_post_language'))->toBeTrue();
+    assertTrue(function_exists('fpe'));
+    assertTrue(defined('ACF'));
+    assertTrue(function_exists('pll_get_post_language'));
 });
 
 test('creates recurrences', function () {
@@ -64,7 +66,7 @@ test('creates recurrences', function () {
     expect($furtherDates)->toHaveCount(count($recurrences));
 
     // Only a simple check for french :)
-    expect(fpe()->recurrences->getRecurrences($eventFR->ID))->toHaveCount(3);
+    assertCount(3, fpe()->recurrences->getRecurrences($eventFR->ID));
 
     /**
      * For each further date, a matching
