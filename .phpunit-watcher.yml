@@ -1,5 +1,5 @@
 # @see https://github.com/spatie/phpunit-watcher?tab=readme-ov-file#customization
 phpunit:
   binaryPath: vendor/bin/pest
-  arguments: '--stop-on-failure'
+  # arguments: '--stop-on-failure'
   timeout: 180

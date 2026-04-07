@@ -31,23 +31,7 @@ tests_add_filter('muplugins_loaded', function () use ($rootDir) {
     FPEvents::instance();
 }, 1);
 
-tests_add_filter('plugins_loaded', function () {
-    PLL()->model->add_language([
-        'name'       => 'Deutsch',
-        'slug'       => 'de',
-        'locale'     => 'de_DE',
-        'rtl'        => false,
-        'term_group' => 0,
-    ]);
-
-    PLL()->model->add_language([
-        'name'       => 'Français',
-        'slug'       => 'fr',
-        'locale'     => 'fr_FR',
-        'rtl'        => false,
-        'term_group' => 1,
-    ]);
-});
+tests_add_filter('plugins_loaded', function () {});
 
 /** Start up the WP testing environment. */
 require_once \getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';

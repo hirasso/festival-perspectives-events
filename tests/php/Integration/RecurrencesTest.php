@@ -10,6 +10,31 @@ use function PHPUnit\Framework\assertCount;
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertTrue;
 
+beforeAll(function () {
+    PLL()->model->add_language([
+        'name'       => 'Deutsch',
+        'slug'       => 'de',
+        'locale'     => 'de_DE',
+        'rtl'        => false,
+        'term_group' => 0,
+    ]);
+
+    PLL()->model->add_language([
+        'name'       => 'Français',
+        'slug'       => 'fr',
+        'locale'     => 'fr_FR',
+        'rtl'        => false,
+        'term_group' => 1,
+    ]);
+
+});
+
+afterAll(function () {
+    foreach (PLL()->model->get_languages_list(['fields' => 'term_id']) as $id) {
+        PLL()->model->delete_language($id);
+    }
+});
+
 /** @return array{0: WP_Post, 1: WP_Post} */
 function createTranslatedEvent(): array
 {
