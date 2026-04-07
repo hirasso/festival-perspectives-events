@@ -882,7 +882,7 @@ final class FPEvents extends Singleton
         }
 
         $query = $this->utils->getMainQuery();
-        $years = $this->utils->getYearsWithEvents($query);
+        $years = $this->utils->getYears($query);
 
         if (count($years) < 1) {
             return;

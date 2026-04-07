@@ -33,7 +33,7 @@ test('gets unfiltered years with events', function () {
     /** would modify the query, should be ignored */
     add_action('pre_get_posts', fn($query) => $query->set('meta_key', 'something-nonexisting'));
 
-    $result = utils()->getYearsWithEvents(new WP_Query(['post_type' => PostTypes::EVENT]));
+    $result = utils()->getYears(new WP_Query(['post_type' => PostTypes::EVENT]));
     expect($result)->toEqual($years);
 });
 
@@ -45,12 +45,12 @@ test('adjusts the post status according to admin/frontend', function () {
 
     /** admin: include all post stati */
     set_current_screen('edit.php');
-    $years = utils()->getYearsWithEvents($query);
+    $years = utils()->getYears($query);
     expect($years)->toEqual(["2030", "2025"]);
 
     /** frontend: exclude drafts */
     set_current_screen('front');
-    $years = utils()->getYearsWithEvents($query);
+    $years = utils()->getYears($query);
     expect($years)->toEqual(["2025"]);
 
     set_current_screen('front');

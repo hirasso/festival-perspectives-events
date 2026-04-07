@@ -70,7 +70,7 @@ final class Utils extends Singleton
     /**
      * Get all years for which events exist
      */
-    public function getYearsWithEvents(WP_Query $query): array
+    public function getYears(WP_Query $query): array
     {
         if (!$this->isEventPostType($query->get('post_type'))) {
             return [];
@@ -138,7 +138,7 @@ final class Utils extends Singleton
             ?? $this->parseYear($query->get('year'))
             ?? $this->parseYear($query->get('s'))
             /** fall back to the last year with events */
-            ?? $this->getYearsWithEvents($query)[0]
+            ?? $this->getYears($query)[0]
             ?? null;
     }
 
