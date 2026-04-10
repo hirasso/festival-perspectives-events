@@ -1,5 +1,13 @@
 # Changelog: `hirasso/festival-perspectives-events`
 
+## 1.1.2
+
+### Patch Changes
+
+- 413bd57: Rename `getYearsWithEvents()` to `getYears()`
+- 413bd57: Use a new function `runUnfiltered()` for querying the database
+- 413bd57: Add a few tests
+
 ## 1.1.1
 
 ### Patch Changes
