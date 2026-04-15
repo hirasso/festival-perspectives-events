@@ -1,5 +1,11 @@
 # Changelog: `hirasso/festival-perspectives-events`
 
+## 1.1.4
+
+### Patch Changes
+
+- 15a7b65: Minor cleanup
+
 ## 1.1.3
 
 ### Patch Changes
