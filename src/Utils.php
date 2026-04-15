@@ -434,4 +434,17 @@ final class Utils extends Singleton
             ],
         ]);
     }
+
+    /**
+     * Register a filter to run exactly once
+     */
+    public function addFilterOnce(string $hook, callable $callback, int $priority = 10, int $args = 1): bool
+    {
+        $singular = function () use ($hook, $callback, $priority, &$singular) {
+            \remove_filter($hook, $singular, $priority);
+            return call_user_func($callback, ...func_get_args());
+        };
+
+        return \add_filter($hook, $singular, $priority, $args);
+    }
 }

@@ -25,6 +25,7 @@ final class FPEvents extends Singleton
 
     public const MYSQL_DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     public const FILTER_TAXONOMY = 'acfe-event_filter';
+    public const PROGRAM_ARCHIVE_SLUG = 'program';
 
     protected function __construct()
     {
@@ -75,7 +76,7 @@ final class FPEvents extends Singleton
         $this->addPostType(name: PostTypes::EVENT, slug: 'event', filter: true, args: [
             'menu_position' => 0,
             'menu_icon' => 'dashicons-calendar',
-            'has_archive' => 'programm',
+            'has_archive' => self::PROGRAM_ARCHIVE_SLUG,
             'labels' => [
                 'name' => 'Events',
                 'singular_name' => 'Event',
@@ -345,9 +346,16 @@ final class FPEvents extends Singleton
             return;
         }
 
-        $query->set('year', '');
-        $query->set('acfe:year', $year);
+        $restoreLater = [
+            'year' => $query->get('year'),
+            'is_year' => $query->is_year,
+        ];
+
+        $query->is_year = false;
+
         $query->query_vars = array_replace_recursive($query->query_vars, [
+            'year' => '',
+            'acfe:year' => $year,
             'meta_query' => [
                 'acfe:year' => [
                     'key'     => EventFields::DATE_AND_TIME,
@@ -357,6 +365,24 @@ final class FPEvents extends Singleton
                 ],
             ],
         ]);
+
+        /**
+         * Restore defaults after the query is built.
+         * This is more of a proof of concept than a real
+         * advantage. Someone might be looking for these to be set on
+         * yearly archive pages
+         */
+        $this->utils->addFilterOnce(
+            'posts_request',
+            function (string $request, WP_Query $query) use ($restoreLater) {
+                $query->is_year = $restoreLater['is_year'];
+                $query->set('year', $restoreLater['year']);
+                return $request;
+            },
+            10,
+            2,
+        );
+
     }
 
     /**
