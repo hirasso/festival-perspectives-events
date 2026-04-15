@@ -62,6 +62,7 @@ final class FPEvents extends Singleton
         add_filter('term_link', [$this, 'term_link'], 10, 2);
         add_filter('relevanssi_hits_filter', [$this, 'relevanssi_hits_filter'], 10, 2);
         add_action('restrict_manage_posts', $this->renderYearFilter(...));
+        add_filter('redirect_canonical', $this->redirectCanonical(...), 10, 2);
 
         $this->setupGarbageCollector();
     }
@@ -589,12 +590,15 @@ final class FPEvents extends Singleton
             return $link;
         }
 
+        /** Preserve any params on the link */
+        parse_str(parse_url($link, PHP_URL_QUERY) ?: '', $params);
+
         $archiveURL = get_post_type_archive_link(PostTypes::EVENT);
         $currentURL = $this->getCurrentURL(true);
 
         $url = str_starts_with($currentURL, $archiveURL) ? $currentURL : $archiveURL;
 
-        return add_query_arg(['filter' => $term->slug], $url);
+        return add_query_arg(['filter' => $term->slug, ...$params], $url);
     }
 
     /**
@@ -1012,5 +1016,17 @@ final class FPEvents extends Singleton
         ])
         ->filter($this->utils->isFilledString(...))
         ->join(', ');
+    }
+
+    /**
+     * Do not redirect canonically if on a yearly archive
+     * The cleaner approach could be to _not_ use "year" as the query arg...
+     * but this is good enough for now.
+     */
+    private function redirectCanonical(mixed $redirect_url, string $requested_url): mixed
+    {
+        return $this->utils->getMainQuery()->get('acfe:year')
+            ? $requested_url
+            : $redirect_url;
     }
 }
