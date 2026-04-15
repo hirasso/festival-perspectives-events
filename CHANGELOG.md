@@ -1,5 +1,11 @@
 # Changelog: `hirasso/festival-perspectives-events`
 
+## 1.1.3
+
+### Patch Changes
+
+- ad569f5: Preserve query args in the 'term_link' filter (for example to preserve the 'year' query param)
+
 ## 1.1.2
 
 ### Patch Changes
