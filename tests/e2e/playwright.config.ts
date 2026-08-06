@@ -101,8 +101,14 @@ export default defineConfig({
     { name: "setup", testMatch: "auth.setup.ts" },
     ...([
       { name: "chromium", device: devices["Desktop Chrome"] },
-      { name: "firefox", device: devices["Desktop Firefox"] },
-      { name: "webkit", device: devices["Desktop Safari"] },
+      // Firefox and WebKit fail to launch in local sandboxed dev environments
+      // (nested browser-sandbox init is blocked outside CI). CI runs unsandboxed.
+      ...(isCI
+        ? [
+            { name: "firefox", device: devices["Desktop Firefox"] },
+            { name: "webkit", device: devices["Desktop Safari"] },
+          ]
+        : []),
     ].map(({ name, device }) => ({
       name,
       use: { ...device, storageState: authFile },
